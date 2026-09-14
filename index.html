@@ -286,6 +286,20 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
 .wb-toolbar button.wb[disabled]{opacity:.5;cursor:default}
 .wb-wid{font-size:11.5px;color:#4b5764;font-variant-numeric:tabular-nums;min-width:26px}
 
+/* ══ 九題改左右兩欄 ══
+   直排九列會把高度吃光，字只好越縮越小。夠寬的時候拆成 5＋4 兩欄，
+   高度砍掉將近一半，省下來的空間全部還給字級。 */
+.togHead{display:grid;grid-template-columns:1fr;gap:0;padding:0 0 5px}
+.thcol{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:0 10px 0 12px}
+.thcol.col2{display:none}
+@media (min-width:820px){
+  .picks{display:grid;grid-template-columns:1fr 1fr;
+    grid-template-rows:repeat(5,auto);grid-auto-flow:column;
+    column-gap:14px;row-gap:6px}
+  .togHead{grid-template-columns:1fr 1fr;column-gap:14px}
+  .thcol.col2{display:grid}
+}
+
 /* ══ 一頁到底：老師端的投票畫面永遠整頁看得到，不必捲動 ══
    所有會影響高度的尺寸都寫成 calc(原值 * var(--k))，
    由 JS 二分搜尋算出塞得下的最大 k。k=1 就是原本的設計尺寸。 */
@@ -325,7 +339,7 @@ body.fit .shead h2{font-size:calc(19px * var(--k))}
 body.fit .shead .kick{font-size:calc(11.5px * var(--k))}
 body.fit .lede{font-size:calc(13.5px * var(--k));margin-bottom:calc(10px * var(--k))}
 body.fit .togHead{font-size:calc(11.5px * var(--k));padding-bottom:calc(4px * var(--k))}
-body.fit .picks{gap:calc(6px * var(--k))}
+body.fit .picks{gap:calc(6px * var(--k));row-gap:calc(6px * var(--k))}
 body.fit .row{padding:calc(8px * var(--k)) calc(10px * var(--k))
               calc(8px * var(--k)) calc(12px * var(--k));
   gap:calc(8px * var(--k))}
@@ -335,8 +349,12 @@ body.fit .row .grade{font-size:calc(11px * var(--k))}
 body.fit .tog{min-height:calc(42px * var(--k));font-size:calc(13px * var(--k));
   min-width:calc(74px * var(--k));padding:0 calc(10px * var(--k));
   border-radius:calc(7px * var(--k))}
-body.fit .togHead span:nth-child(2),
-body.fit .togHead span:nth-child(3){min-width:calc(74px * var(--k))}
+body.fit .thcol > span:nth-child(2),
+body.fit .thcol > span:nth-child(3){min-width:calc(74px * var(--k))}
+/* 兩欄時畫面用得比較寬，欄位才不會擠 */
+@media (min-width:1100px){
+  body.fit .wrap, body.fit main{max-width:1180px}
+}
 body.fit .sendbar{margin-top:calc(12px * var(--k));gap:calc(12px * var(--k))}
 body.fit .btn{font-size:calc(14.5px * var(--k));
   padding:calc(11px * var(--k)) calc(22px * var(--k))}
@@ -396,9 +414,16 @@ body.fit #sec-login .pinrow .btn{font-size:calc(13.5px * var(--k));
     <div class="shead"><h2>投你的三票</h2><div class="kick">第 一 輪</div></div>
     <p class="lede">先押一個判斷再看資料，資料才會變成「原來如此」。選滿三個之後按送出；<b>送出後仍可改</b>，改完再按一次就好。</p>
     <div class="togHead">
-      <span>學習內容（七、八年級）</span>
-      <span>篩選 <span class="cnt s" id="cntS">0/3</span></span>
-      <span>會考 <span class="cnt e" id="cntE">0/3</span></span>
+      <div class="thcol">
+        <span>學習內容（七、八年級）</span>
+        <span>篩選 <span class="cnt s cntS">0/3</span></span>
+        <span>會考 <span class="cnt e cntE">0/3</span></span>
+      </div>
+      <div class="thcol col2">
+        <span>學習內容（七、八年級）</span>
+        <span>篩選 <span class="cnt s cntS">0/3</span></span>
+        <span>會考 <span class="cnt e cntE">0/3</span></span>
+      </div>
     </div>
     <div class="picks" id="picks"></div>
     <div class="sendbar">
@@ -686,16 +711,18 @@ function toggle(k, code, btn){
   msgSticky = false;            // 開始改選擇了，剛才的成功／失敗訊息就可以讓位
   syncPick();
 }
+/* 兩欄排版時欄頭有兩份，所以計數器一律用 class 一起更新 */
+function cnts(k){ return document.querySelectorAll(k === 'scr' ? '.cntS' : '.cntE'); }
 function flash(k){
-  const el = document.getElementById(k === 'scr' ? 'cntS' : 'cntE');
-  el.classList.add('over');
-  setTimeout(() => el.classList.remove('over'), 700);
+  const els = cnts(k);
+  els.forEach(el => el.classList.add('over'));
+  setTimeout(() => els.forEach(el => el.classList.remove('over')), 700);
   msg('「' + TRACKS[k].label + '」已經選滿三個了。要換的話先取消一個。');
 }
 function syncPick(){
   const a = S.pick.scr.size, b = S.pick.exam.size;
-  document.getElementById('cntS').textContent = a + '/3';
-  document.getElementById('cntE').textContent = b + '/3';
+  cnts('scr').forEach(el => el.textContent = a + '/3');
+  cnts('exam').forEach(el => el.textContent = b + '/3');
   document.getElementById('myS').textContent = a;
   document.getElementById('myE').textContent = b;
   const ok = a === 3 && b === 3;
@@ -1281,6 +1308,9 @@ document.addEventListener('visibilitychange', () => {
 const mainEl = document.querySelector('main');
 const loginSec = document.getElementById('sec-login');
 const K_MIN = 0.40;
+/* 兩欄排版把高度砍掉快一半，常常會有剩。有剩就把字放大，
+   所以上限開到 1.35——這是「一頁到底」附帶的好處，不是只會縮小。 */
+const K_MAX = 1.55;
 
 function fitOverflows(){
   return mainEl.scrollHeight > mainEl.clientHeight + 1;
@@ -1288,10 +1318,10 @@ function fitOverflows(){
 /* 二分搜尋出塞得下的最大倍率 */
 function fitSearch(){
   const b = document.body;
-  b.style.setProperty('--k', '1');
-  if (!fitOverflows()) return 1;           // 原尺寸就放得下，不要多此一舉縮小
-  let lo = K_MIN, hi = 1;
-  for (let i = 0; i < 14; i++){
+  b.style.setProperty('--k', String(K_MAX));
+  if (!fitOverflows()) return K_MAX;       // 空間很夠，直接用最大字
+  let lo = K_MIN, hi = K_MAX;
+  for (let i = 0; i < 16; i++){
     const k = (lo + hi) / 2;
     b.style.setProperty('--k', k.toFixed(4));
     if (fitOverflows()) hi = k; else lo = k;
