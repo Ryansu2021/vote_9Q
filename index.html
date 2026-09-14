@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>九條學習事先猜測</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#FBFAF7; --panel:#FFFFFF; --panel2:#F4F3EF;
+  --ink:#141F29; --ink2:#4B5764; --ink3:#7C8794;
+  --rule:#E0DED6; --rule2:#EFEDE7;
+  --navy:#12303F; --navyInk:#EAF0F3;
+  --scr:#0E7A5A;  --scrSoft:#E4F1EB;
+  --exam:#1F5FA8; --examSoft:#E5EDF8;
+  --hot:#B3400C;  --hotSoft:#FBEDE5;
+  --shadow:0 1px 2px rgba(20,31,41,.05), 0 6px 18px rgba(20,31,41,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1418; --panel:#151E24; --panel2:#1B262D;
+    --ink:#E8EDF0; --ink2:#AFBDC7; --ink3:#7F8F9B;
+    --rule:#2A3740; --rule2:#212C34;
+    --navy:#0A171E; --navyInk:#DCE8ED;
+    --scr:#2E9E7C;  --scrSoft:#12312A;
+    --exam:#5A8FDB; --examSoft:#152435;
+    --hot:#E2793F;  --hotSoft:#2B1A12;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1418; --panel:#151E24; --panel2:#1B262D;
+  --ink:#E8EDF0; --ink2:#AFBDC7; --ink3:#7F8F9B;
+  --rule:#2A3740; --rule2:#212C34;
+  --navy:#0A171E; --navyInk:#DCE8ED;
+  --scr:#2E9E7C;  --scrSoft:#12312A;
+  --exam:#5A8FDB; --examSoft:#152435;
+  --hot:#E2793F;  --hotSoft:#2B1A12;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Noto Serif TC",Georgia,serif;text-wrap:balance;margin:0}
+.mono{font-family:"JetBrains Mono",Consolas,ui-monospace,monospace;
+  font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── 標頭 ── */
+header{background:var(--navy);color:var(--navyInk);padding:22px 20px 20px}
+.wrap{max-width:960px;margin:0 auto}
+header .eyebrow{font-size:11.5px;letter-spacing:.24em;opacity:.72;margin-bottom:7px}
+header h1{font-size:clamp(24px,5.2vw,34px);line-height:1.22;color:#fff}
+header p{margin:9px 0 0;font-size:13.5px;color:#B8CBD5;max-width:62ch}
+header p b{color:#fff;font-weight:500}
+
+/* ── 狀態列 ── */
+.status{position:sticky;top:0;z-index:30;background:var(--panel);
+  border-bottom:1px solid var(--rule);box-shadow:var(--shadow)}
+.status .wrap{display:flex;align-items:center;gap:8px 22px;flex-wrap:wrap;
+  padding:9px 20px}
+.stat{display:flex;align-items:baseline;gap:6px;font-size:12.5px;color:var(--ink3)}
+.stat b{font-size:19px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.phase{margin-left:auto;font-size:12.5px;font-weight:700;padding:3px 11px;
+  border-radius:100px;border:1px solid var(--rule);color:var(--ink2);background:var(--panel2)}
+.phase.on{background:var(--hotSoft);border-color:var(--hot);color:var(--hot)}
+
+main{max-width:960px;margin:0 auto;padding:20px 20px 56px;
+  display:flex;flex-direction:column;gap:26px}
+section{min-width:0}
+.shead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  border-bottom:1.5px solid var(--ink);padding-bottom:6px;margin-bottom:12px}
+.shead h2{font-size:19px}
+.shead .kick{font-size:11.5px;letter-spacing:.16em;color:var(--ink3);margin-left:auto}
+.lede{margin:0 0 14px;font-size:13.5px;color:var(--ink2);max-width:66ch}
+.lede b{color:var(--ink)}
+
+/* ── 卡片列（投票） ── */
+.picks{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+  background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:8px 10px 8px 12px}
+.row .id{min-width:0}
+.row .code{font-size:14px;font-weight:700;color:var(--ink2)}
+.row .name{font-size:14.5px;font-weight:500;line-height:1.35}
+.row .grade{font-size:11px;color:var(--ink3);margin-left:6px}
+.tog{font:inherit;font-size:13px;font-weight:700;min-width:74px;min-height:42px;
+  border-radius:7px;cursor:pointer;background:var(--panel2);
+  border:1.5px solid var(--rule);color:var(--ink3);display:flex;align-items:center;
+  justify-content:center;gap:5px;padding:0 10px}
+.tog:hover{border-color:var(--ink3);color:var(--ink2)}
+.tog:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.tog[aria-pressed="true"].s{background:var(--scrSoft);border-color:var(--scr);color:var(--scr)}
+.tog[aria-pressed="true"].e{background:var(--examSoft);border-color:var(--exam);color:var(--exam)}
+.tog .tick{opacity:0;font-size:12px}
+.tog[aria-pressed="true"] .tick{opacity:1}
+.togHead{display:grid;grid-template-columns:1fr auto auto;gap:8px;
+  padding:0 10px 5px 12px;font-size:11.5px;color:var(--ink3)}
+.togHead span:nth-child(2),.togHead span:nth-child(3){min-width:74px;text-align:center}
+.cnt{font-weight:700}
+.cnt.s{color:var(--scr)} .cnt.e{color:var(--exam)} .cnt.over{color:var(--hot)}
+
+.sendbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.btn{font:inherit;font-size:14.5px;font-weight:700;padding:11px 22px;border-radius:8px;
+  border:1.5px solid var(--ink);background:var(--ink);color:var(--ground);cursor:pointer}
+.btn:hover{opacity:.9}
+.btn[disabled]{opacity:.42;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink2);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink3);color:var(--ink)}
+.btn.warn{background:transparent;color:var(--hot);border-color:var(--hot)}
+.sendmsg{font-size:13px;color:var(--ink2)}
+.sendmsg b{color:var(--scr)}
+
+/* ── 統計長條 ── */
+.bars{display:flex;flex-direction:column;gap:2px}
+.bar{display:grid;grid-template-columns:118px 1fr 1fr;gap:10px;align-items:center;
+  padding:5px 4px;border-bottom:1px solid var(--rule2)}
+.bar:last-child{border-bottom:0}
+.bar .lb{font-size:13px;font-weight:700;color:var(--ink2)}
+.track{display:flex;align-items:center;gap:7px;min-width:0}
+.gutter{flex:1;height:14px;background:var(--panel2);border-radius:3px;position:relative;
+  min-width:24px}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px 4px 4px 3px;
+  transition:width .28s ease}
+.fill.s{background:var(--scr)} .fill.e{background:var(--exam)}
+.pctv{font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink2);
+  min-width:38px;text-align:right}
+.truth{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink3);
+  min-width:52px;text-align:right}
+.truth.top{color:var(--hot);font-weight:700}
+.barhead{display:grid;grid-template-columns:118px 1fr 1fr;gap:10px;
+  font-size:11.5px;color:var(--ink3);padding:0 4px 5px}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;
+  vertical-align:-1px;margin-right:5px}
+.swatch.s{background:var(--scr)} .swatch.e{background:var(--exam)}
+.empty{font-size:13px;color:var(--ink3);padding:10px 4px}
+
+/* ── 矩陣 ── */
+.mwrap{background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+  padding:10px 12px;box-shadow:var(--shadow);overflow-x:auto}
+.mwrap svg{display:block;width:100%;min-width:520px;height:auto}
+.trackbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.tb{font:inherit;font-size:13px;padding:6px 13px;border-radius:100px;cursor:pointer;
+  border:1.5px solid var(--rule);background:var(--panel);color:var(--ink2)}
+.tb[aria-pressed="true"].s{background:var(--scr);border-color:var(--scr);color:#fff;font-weight:700}
+.tb[aria-pressed="true"].e{background:var(--exam);border-color:var(--exam);color:#fff;font-weight:700}
+.mnote{font-size:12px;color:var(--ink3);margin-top:8px;max-width:70ch}
+
+/* ── 揭曉筆記 ── */
+.notes{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(258px,1fr))}
+.note{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--hot);
+  border-radius:0 8px 8px 0;padding:11px 14px}
+.note h3{font-size:14.5px;margin-bottom:4px}
+.note p{margin:0;font-size:13px;color:var(--ink2)}
+.note .figs{font-size:12.5px;color:var(--ink3);margin-top:6px}
+.note .figs b{color:var(--ink)}
+
+/* ── 講者控制台 ── */
+.console{background:var(--panel);border:1px dashed var(--ink3);border-radius:10px;
+  padding:14px 16px;display:grid;gap:14px;grid-template-columns:auto 1fr;align-items:start}
+.console .qr{width:132px;height:132px;background:#fff;border:1px solid var(--rule);
+  border-radius:6px;display:flex;align-items:center;justify-content:center;padding:6px}
+.console .qr img,.console .qr canvas{width:100%;height:auto;display:block}
+.console .cbody{min-width:0}
+.console h2{font-size:16px;margin-bottom:3px}
+.console .url{font-size:12px;color:var(--ink2);word-break:break-all;margin:4px 0 10px;
+  font-family:"JetBrains Mono",monospace}
+.crow{display:flex;gap:8px;flex-wrap:wrap}
+.chint{font-size:12px;color:var(--ink3);margin-top:9px}
+@media (max-width:640px){
+  .console{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr auto auto}
+  .row .name{font-size:14px}
+  .bar,.barhead{grid-template-columns:96px 1fr 1fr}
+  .tog{min-width:64px}
+  .togHead span:nth-child(2),.togHead span:nth-child(3){min-width:64px}
+}
+footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
+  color:var(--ink3)}
+#tip{position:fixed;z-index:200;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:rgba(14,20,24,.96);color:#fff;font-size:12.5px;line-height:1.5;
+  padding:7px 10px;border-radius:6px;max-width:250px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#tip .t{font-weight:700;margin-bottom:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── GitHub Pages 版新增 ── */
+.setup{background:var(--hotSoft);border:1px solid var(--hot);border-radius:10px;
+  padding:14px 16px;margin-bottom:4px}
+.setup h2{font-size:16px;color:var(--hot);margin-bottom:4px}
+.setup p{margin:0 0 8px;font-size:13px;color:var(--ink2)}
+.setup code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--panel);
+  border:1px solid var(--rule);border-radius:4px;padding:1px 5px}
+.netdot{display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--ink3);margin-right:5px;vertical-align:1px}
+.netdot.ok{background:var(--scr)} .netdot.bad{background:var(--hot)}
+.pinrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.pinrow input{font:inherit;font-size:14px;padding:8px 11px;border-radius:7px;
+  border:1.5px solid var(--rule);background:var(--panel);color:var(--ink);width:170px}
+.pinrow input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">國中數學教師研習 ・ 現場押注</div>
+    <h1>這 9 條學習內容，誰最常考？</h1>
+    <p>統計範圍是 <b>111–115 五年</b>：科技化評量篩選測驗共 <b>250 題</b>、國中教育會考共 <b>135 題</b>。
+    下面 9 條都是七、八年級的學習內容。<b>兩邊各挑三條</b>——不必一致，兩份測驗本來就可能不同。</p>
+  </div>
+</header>
+
+<div class="status">
+  <div class="wrap">
+    <div class="stat"><b id="nVoters">0</b><span>人已投票</span></div>
+    <div class="stat"><span>我的選擇</span><b><span id="myS">0</span>/3</b><span>篩選</span></div>
+    <div class="stat"><b><span id="myE">0</span>/3</b><span>會考</span></div>
+    <div class="stat"><span class="netdot" id="netdot"></span><span id="nettxt">連線中…</span></div>
+    <div class="phase" id="phase">尚未揭曉</div>
+  </div>
+</div>
+
+<main>
+  <section class="setup" id="setup" hidden>
+    <h2>還沒設定後端網址</h2>
+    <p>請打開 <code>index.html</code>，把第一行 <code>const API_URL = ''</code> 換成你的 Google Apps Script
+    網頁應用程式網址（<code>…/exec</code> 結尾）。設定完成前，下面的畫面可以照常瀏覽，但投票不會被記錄。</p>
+    <p>臨時測試也可以在網址後面加上 <code>?api=你的網址</code>。</p>
+  </section>
+
+  <section id="sec-pick">
+    <div class="shead"><h2>投你的三票</h2><div class="kick">第 一 輪</div></div>
+    <p class="lede">先押一個判斷再看資料，資料才會變成「原來如此」。選滿三個之後按送出；<b>送出後仍可改</b>，改完再按一次就好。</p>
+    <div class="togHead">
+      <span>學習內容（七、八年級）</span>
+      <span>篩選 <span class="cnt s" id="cntS">0/3</span></span>
+      <span>會考 <span class="cnt e" id="cntE">0/3</span></span>
+    </div>
+    <div class="picks" id="picks"></div>
+    <div class="sendbar">
+      <button class="btn" id="send" disabled>送出我的選擇</button>
+      <div class="sendmsg" id="sendmsg">兩邊各選三個就可以送出。</div>
+    </div>
+  </section>
+
+  <section id="sec-res">
+    <div class="shead"><h2>全場怎麼看</h2><div class="kick">即時統計</div></div>
+    <div class="barhead">
+      <span>學習內容</span>
+      <span><span class="swatch s"></span>認為篩選最常考的比例</span>
+      <span><span class="swatch e"></span>認為會考最常考的比例</span>
+    </div>
+    <div class="bars" id="bars"></div>
+    <div class="empty" id="resEmpty">還沒有人投票——投第一票的人會立刻出現在這裡。</div>
+  </section>
+
+  <section id="sec-mx">
+    <div class="shead"><h2>把全場的票疊回矩陣</h2><div class="kick">實際次數 × 全場直覺</div></div>
+    <p class="lede">位置是<b>實際命題次數</b>（橫軸會考、縱軸篩選，111–115 五年）；圓圈大小是<b>全場投給它的比例</b>。
+    虛線是研習用的象限門檻：會考 ≧3 題、篩選 ≧5 題。</p>
+    <div class="trackbar">
+      <button class="tb s" id="tbS" aria-pressed="true">看「篩選最常考」的票</button>
+      <button class="tb e" id="tbE" aria-pressed="false">看「會考最常考」的票</button>
+    </div>
+    <div class="mwrap"><svg id="mx" viewBox="0 0 880 470" role="img"
+      aria-label="九條學習內容的實際命題次數散佈圖，圓圈大小為全場投票比例"></svg></div>
+    <p class="mnote" id="mnote"></p>
+  </section>
+
+  <section id="sec-notes" hidden>
+    <div class="shead"><h2>揭曉之後，看這三件事</h2><div class="kick">為什麼會猜錯</div></div>
+    <div class="notes" id="notes"></div>
+  </section>
+
+  <section id="sec-console" hidden>
+    <div class="console">
+      <div class="qr" id="qr"></div>
+      <div class="cbody">
+        <h2>講者控制台</h2>
+        <p class="lede" style="margin-bottom:0">請老師掃這個 QR code 或開下面的連結投票——<b>不必登入任何帳號</b>。</p>
+        <div class="url" id="url"></div>
+        <div class="crow">
+          <button class="btn" id="reveal">揭曉答案</button>
+          <button class="btn ghost" id="copy">複製連結</button>
+          <button class="btn warn" id="clear">清除全部票</button>
+        </div>
+        <p class="chint" id="chint">這一區只有你看得到（網址帶著講者密碼時才出現）。分享給老師的連結請用上面那一行，它不含密碼。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-login">
+    <div class="shead"><h2>我是講者</h2><div class="kick">控制台</div></div>
+    <p class="lede">輸入講者密碼即可開啟揭曉與清票的控制台。老師端不需要密碼，也不需要登入。</p>
+    <div class="pinrow">
+      <input type="password" id="pinInput" placeholder="講者密碼" autocomplete="off">
+      <button class="btn ghost" id="pinGo">開啟控制台</button>
+      <span class="sendmsg" id="pinMsg"></span>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">資料來源：心測中心「國中教育會考試題分析」（111–115）命題依據 ・ 科技化評量篩選測驗施測後回饋訊息 ・ 108 課綱基本學習內容與表現。
+  兩份測驗的受測對象不同（會考為全體考生、篩選為該次受測學生），本頁只比較<b>命題次數</b>，不比較通過率。</div>
+</footer>
+<div id="tip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   ①  設定：把 Apps Script 的網頁應用程式網址貼在這裡
+   ════════════════════════════════════════════════════════════ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbx2gDTVRY0NR13usoI_tRiTkCkEIJ2QJ7MdCYU6J5rKeo3ZanJwgubYHlt8Q38WfuX6Gg/exec';          // ← 例如 'https://script.google.com/macros/s/AKfy……/exec'
+const POLL_MS = 2500;        // 每隔幾毫秒抓一次全場統計
+
+/* ════════════════════════════════════════════════════════════
+   ②  資料：111–115 五年實際命題次數
+   ════════════════════════════════════════════════════════════ */
+const CARDS = [
+  { c:'N-7-3', n:'負數與數的四則混合運算', g:7, scr:15, exam:3 },
+  { c:'N-7-5', n:'數線',                   g:7, scr:14, exam:5 },
+  { c:'N-7-9', n:'比與比例式',             g:7, scr:13, exam:8 },
+  { c:'A-7-1', n:'代數符號',               g:7, scr:5,  exam:3 },
+  { c:'A-8-1', n:'二次式的乘法公式',       g:8, scr:10, exam:1 },
+  { c:'A-8-7', n:'一元二次方程式的解法與應用', g:8, scr:9, exam:6 },
+  { c:'G-7-1', n:'平面直角坐標系',         g:7, scr:10, exam:3 },
+  { c:'S-8-6', n:'畢氏定理',               g:8, scr:6,  exam:1 },
+  { c:'D-7-1', n:'統計圖表',               g:7, scr:0,  exam:5 }
+];
+const TRACKS = { scr:{ label:'篩選測驗', cls:'s' }, exam:{ label:'教育會考', cls:'e' } };
+function topSet(key){
+  const v = CARDS.map(d=>d[key]).sort((a,b)=>b-a), cut = v[2];
+  return new Set(CARDS.filter(d=>d[key] >= cut).map(d=>d.c));
+}
+const TOP = { scr: topSet('scr'), exam: topSet('exam') };
+
+const NOTES = [
+  { h:'會考年年考，篩選一題都沒有', figs:'D-7-1 統計圖表 ─ 會考 <b>5 題</b>（並列第三）／篩選 <b>0 題</b>',
+    p:'這不是漏考。統計圖表在七年級下學期後段，五月篩選測驗施測時還沒教完，被移到十二月的成長測驗——它<b>不在篩選測驗的範圍</b>裡。要診斷這一段，得去看成長測驗。' },
+  { h:'篩選很常測，會考幾乎不單獨入題', figs:'A-8-1 乘法公式 ─ 篩選 <b>10</b>／會考 <b>1</b>　・　S-8-6 畢氏定理 ─ 篩選 <b>6</b>／會考 <b>1</b>',
+    p:'這兩條是計算工具。會考不單獨命題，是因為它們被<b>包在別的題目的計算裡</b>——不是不重要，而是不會以它們自己的名義出現。' },
+  { h:'兩邊都排在最前面的那一條', figs:'N-7-9 比與比例式 ─ 篩選 <b>13</b>／會考 <b>8</b>（兩邊都是第一）',
+    p:'五年裡兩份測驗都反覆命題，是最值得<b>逐題對照</b>的一條：同一個代碼，兩種問法，學生的表現差在哪裡，這一條看得最清楚。' }
+];
+
+/* ════════════════════════════════════════════════════════════
+   ③  狀態
+   ════════════════════════════════════════════════════════════ */
+const QS = new URLSearchParams(location.search);
+const API = (QS.get('api') || API_URL || '').trim();
+const S = { pick:{ scr:new Set(), exam:new Set() }, sent:false,
+            n:0, tally:{ scr:{}, exam:{} }, revealed:false,
+            track:'scr', pin:'', online:false };
+CARDS.forEach(d => { S.tally.scr[d.c] = 0; S.tally.exam[d.c] = 0; });
+
+const myId = (function(){
+  let k = null;
+  try { k = localStorage.getItem('vote9.id'); } catch(e){}
+  if (!k){
+    k = 'v' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+    try { localStorage.setItem('vote9.id', k); } catch(e){}
+  }
+  return k;
+})();
+
+/* ════════════════════════════════════════════════════════════
+   ④  跟後端說話（一律用 GET，避開 CORS 預檢）
+   ════════════════════════════════════════════════════════════ */
+async function call(params){
+  if (!API) throw new Error('no-api');
+  const u = new URL(API);
+  Object.keys(params).forEach(k => u.searchParams.set(k, params[k]));
+  const r = await fetch(u.toString(), { method:'GET', redirect:'follow' });
+  const j = await r.json();
+  if (j && j.ok === false) throw new Error(j.error || 'error');
+  return j;
+}
+function absorb(j){
+  if (!j) return;
+  S.n = j.n || 0;
+  if (j.scr) S.tally.scr = j.scr;
+  if (j.exam) S.tally.exam = j.exam;
+  S.revealed = !!j.revealed;
+  setNet(true);
+  renderBars(); renderMx(); renderNotes();
+}
+function setNet(ok){
+  S.online = ok;
+  const d = document.getElementById('netdot'), t = document.getElementById('nettxt');
+  d.className = 'netdot ' + (ok ? 'ok' : 'bad');
+  t.textContent = ok ? '已連線' : (API ? '連不上投票資料' : '未設定後端');
+}
+
+/* ════════════════════════════════════════════════════════════
+   ⑤  投票列
+   ════════════════════════════════════════════════════════════ */
+const picksEl = document.getElementById('picks');
+CARDS.forEach(d => {
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML =
+    '<div class="id"><span class="code mono">' + d.c + '</span>' +
+    '<span class="grade">' + d.g + ' 年級</span>' +
+    '<div class="name">' + d.n + '</div></div>';
+  ['scr','exam'].forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'tog ' + TRACKS[k].cls;
+    b.setAttribute('aria-pressed','false');
+    b.innerHTML = '<span class="tick">✓</span>' + (k === 'scr' ? '篩選' : '會考');
+    b.setAttribute('aria-label', TRACKS[k].label + '最常考：' + d.c + ' ' + d.n);
+    b.onclick = () => toggle(k, d.c, b);
+    row.appendChild(b);
+  });
+  picksEl.appendChild(row);
+});
+function toggle(k, code, btn){
+  const set = S.pick[k];
+  if (set.has(code)) set.delete(code);
+  else { if (set.size >= 3) { flash(k); return; } set.add(code); }
+  btn.setAttribute('aria-pressed', set.has(code) ? 'true' : 'false');
+  syncPick();
+}
+function flash(k){
+  const el = document.getElementById(k === 'scr' ? 'cntS' : 'cntE');
+  el.classList.add('over');
+  setTimeout(() => el.classList.remove('over'), 700);
+  msg('「' + TRACKS[k].label + '」已經選滿三個了。要換的話先取消一個。');
+}
+function syncPick(){
+  const a = S.pick.scr.size, b = S.pick.exam.size;
+  document.getElementById('cntS').textContent = a + '/3';
+  document.getElementById('cntE').textContent = b + '/3';
+  document.getElementById('myS').textContent = a;
+  document.getElementById('myE').textContent = b;
+  const ok = a === 3 && b === 3;
+  const send = document.getElementById('send');
+  send.disabled = !ok || !API;
+  send.textContent = S.sent ? '更新我的選擇' : '送出我的選擇';
+  if (!API) msg('這一份還沒接上投票資料，選擇不會被統計。');
+  else if (!ok) msg('兩邊各選三個就可以送出。');
+  else if (!S.sent) msg('選好了，按左邊送出。');
+}
+function msg(t){ document.getElementById('sendmsg').innerHTML = t; }
+
+document.getElementById('send').onclick = async () => {
+  const send = document.getElementById('send');
+  send.disabled = true; msg('送出中…');
+  try {
+    const j = await call({ action:'vote', id:myId,
+      scr:[...S.pick.scr].join(','), exam:[...S.pick.exam].join(',') });
+    S.sent = true;
+    try { localStorage.setItem('vote9.mine',
+      JSON.stringify({ scr:[...S.pick.scr], exam:[...S.pick.exam] })); } catch(e){}
+    absorb(j);
+    msg('<b>已送出 ✓</b>　想改就直接改，改完再按一次。');
+  } catch (e) {
+    setNet(false);
+    msg('送不出去（' + e.message + '），請再按一次。');
+  }
+  syncPick();
+};
+
+/* ════════════════════════════════════════════════════════════
+   ⑥  統計長條
+   ════════════════════════════════════════════════════════════ */
+const barsEl = document.getElementById('bars');
+const barRefs = {};
+CARDS.forEach(d => {
+  const r = document.createElement('div');
+  r.className = 'bar';
+  r.innerHTML = '<div class="lb"><span class="mono">' + d.c + '</span></div>' +
+    trackHtml('s') + trackHtml('e');
+  r.title = d.n;
+  barsEl.appendChild(r);
+  const g = r.querySelectorAll('.fill'), p = r.querySelectorAll('.pctv'),
+        t = r.querySelectorAll('.truth');
+  barRefs[d.c] = { fill:[g[0], g[1]], pct:[p[0], p[1]], truth:[t[0], t[1]] };
+});
+function trackHtml(cls){
+  return '<div class="track"><div class="gutter"><div class="fill ' + cls +
+    '" style="width:0"></div></div><div class="pctv">—</div><div class="truth"></div></div>';
+}
+function renderBars(){
+  const n = S.n;
+  document.getElementById('nVoters').textContent = n;
+  document.getElementById('resEmpty').hidden = n > 0;
+  CARDS.forEach(d => {
+    const r = barRefs[d.c];
+    [['scr',0],['exam',1]].forEach(([k,i]) => {
+      const share = n ? (S.tally[k][d.c] || 0) / n : 0;
+      r.fill[i].style.width = (share * 100).toFixed(1) + '%';
+      r.pct[i].textContent = n ? Math.round(share * 100) + '%' : '—';
+      if (S.revealed){
+        const isTop = TOP[k].has(d.c);
+        r.truth[i].textContent = d[k] + ' 題' + (isTop ? ' ★' : '');
+        r.truth[i].className = 'truth' + (isTop ? ' top' : '');
+      } else { r.truth[i].textContent = ''; r.truth[i].className = 'truth'; }
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   ⑦  矩陣散佈圖
+   ════════════════════════════════════════════════════════════ */
+const XMAX = 9, YMAX = 16, EX_T = 3, SC_T = 5;
+const M = { l:66, r:118, t:18, b:52 };
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function renderMx(){
+  const W = 880, H = 470, pw = W - M.l - M.r, ph = H - M.t - M.b;
+  const cx = v => M.l + (v / (XMAX - 1)) * pw;
+  const cy = v => M.t + ph - (v / (YMAX - 1)) * ph;
+  const tk = S.track, col = css(tk === 'scr' ? '--scr' : '--exam');
+  const ink3 = css('--ink3'), ink2 = css('--ink2'), rule = css('--rule');
+  const n = S.n, e = [];
+  for (let x = 0; x <= 8; x += 2)
+    e.push('<line x1="'+cx(x)+'" y1="'+M.t+'" x2="'+cx(x)+'" y2="'+(M.t+ph)+'" stroke="'+rule+'" stroke-width="1"/>');
+  for (let y = 0; y <= 15; y += 5)
+    e.push('<line x1="'+M.l+'" y1="'+cy(y)+'" x2="'+(M.l+pw)+'" y2="'+cy(y)+'" stroke="'+rule+'" stroke-width="1"/>');
+  e.push('<line x1="'+cx(EX_T-.5)+'" y1="'+M.t+'" x2="'+cx(EX_T-.5)+'" y2="'+(M.t+ph)+'" stroke="'+ink3+'" stroke-width="1.2" stroke-dasharray="6 4"/>');
+  e.push('<line x1="'+M.l+'" y1="'+cy(SC_T-.5)+'" x2="'+(M.l+pw)+'" y2="'+cy(SC_T-.5)+'" stroke="'+ink3+'" stroke-width="1.2" stroke-dasharray="6 4"/>');
+  e.push('<text x="'+(M.l+pw-4)+'" y="'+(M.t+15)+'" text-anchor="end" font-size="12.5" font-weight="700" fill="'+ink3+'">兩端高頻</text>');
+  for (let x = 0; x <= 8; x += 2)
+    e.push('<text x="'+cx(x)+'" y="'+(M.t+ph+20)+'" text-anchor="middle" font-size="12" fill="'+ink3+'">'+x+'</text>');
+  for (let y = 0; y <= 15; y += 5)
+    e.push('<text x="'+(M.l-10)+'" y="'+(cy(y)+4)+'" text-anchor="end" font-size="12" fill="'+ink3+'">'+y+'</text>');
+  e.push('<text x="'+(M.l+pw/2)+'" y="'+(H-12)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="'+ink2+'">會考命題次數（111–115，共 135 題）</text>');
+  e.push('<text transform="translate(16,'+(M.t+ph/2)+') rotate(-90)" text-anchor="middle" font-size="12.5" font-weight="700" fill="'+ink2+'">篩選測驗命題次數（共 250 題）</text>');
+  CARDS.slice().sort((a,b)=>(b.scr+b.exam)-(a.scr+a.exam)).forEach(d => {
+    const share = n ? (S.tally[tk][d.c] || 0) / n : 0;
+    const x = cx(d.exam), y = cy(d.scr), r = 7 + 15 * Math.sqrt(share);
+    const isTop = S.revealed && TOP[tk].has(d.c);
+    e.push('<circle class="dot" data-c="'+d.c+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+
+      '" fill="'+col+'" fill-opacity="'+(share?.26:.1)+'" stroke="'+col+'" stroke-width="'+(isTop?3.2:1.8)+'"/>');
+    e.push('<circle class="dot" data-c="'+d.c+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.6" fill="'+col+'"/>');
+    const lab = d.c + (share ? '　' + Math.round(share*100) + '%' : '');
+    e.push('<text x="'+(x+r+6).toFixed(1)+'" y="'+(y+4).toFixed(1)+'" font-size="12" font-weight="'+(isTop?700:500)+
+      '" fill="'+(isTop?css('--hot'):ink2)+'" font-family="JetBrains Mono, monospace">'+lab+'</text>');
+  });
+  const svg = document.getElementById('mx');
+  svg.innerHTML = e.join('');
+  svg.querySelectorAll('.dot').forEach(el => {
+    const d = CARDS.find(x => x.c === el.dataset.c);
+    el.addEventListener('mouseenter', ev => showTip(ev, d));
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', hideTip);
+  });
+  document.getElementById('mnote').innerHTML = n
+    ? '目前 <b>' + n + '</b> 人投票。圓圈越大＝越多人認為它在「' + TRACKS[tk].label + '」最常考。'
+      + (S.revealed ? ' 粗框與橘色標籤是實際的前三名。' : ' 揭曉後會標出實際前三名。')
+    : '還沒有人投票，圓點停在各自的實際命題次數上。';
+}
+const tip = document.getElementById('tip');
+function showTip(ev, d){
+  const n = S.n;
+  tip.innerHTML = '<div class="t">' + d.c + '　' + d.n + '</div>'
+    + '實際：篩選 ' + d.scr + ' 題／會考 ' + d.exam + ' 題<br>'
+    + (n ? '全場：篩選 ' + Math.round((S.tally.scr[d.c]||0)/n*100) + '%／會考 '
+         + Math.round((S.tally.exam[d.c]||0)/n*100) + '%' : '全場：尚無投票');
+  tip.style.opacity = 1; moveTip(ev);
+}
+function moveTip(ev){
+  const p = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(ev.clientX + p, innerWidth - w - 8) + 'px';
+  tip.style.top = Math.max(8, ev.clientY - h - p) + 'px';
+}
+function hideTip(){ tip.style.opacity = 0; }
+document.getElementById('tbS').onclick = () => setTrack('scr');
+document.getElementById('tbE').onclick = () => setTrack('exam');
+function setTrack(t){
+  S.track = t;
+  document.getElementById('tbS').setAttribute('aria-pressed', t === 'scr');
+  document.getElementById('tbE').setAttribute('aria-pressed', t === 'exam');
+  renderMx();
+}
+
+/* ════════════════════════════════════════════════════════════
+   ⑧  揭曉
+   ════════════════════════════════════════════════════════════ */
+function renderNotes(){
+  const host = document.getElementById('notes');
+  if (host.childElementCount === 0){
+    host.innerHTML = NOTES.map(x =>
+      '<div class="note"><h3>' + x.h + '</h3><div class="figs">' + x.figs +
+      '</div><p style="margin-top:6px">' + x.p + '</p></div>').join('');
+  }
+  document.getElementById('sec-notes').hidden = !S.revealed;
+  const ph = document.getElementById('phase');
+  ph.textContent = S.revealed ? '已揭曉' : '尚未揭曉';
+  ph.classList.toggle('on', S.revealed);
+  const rb = document.getElementById('reveal');
+  if (rb) rb.textContent = S.revealed ? '收回揭曉' : '揭曉答案';
+}
+
+/* ════════════════════════════════════════════════════════════
+   ⑨  講者控制台（密碼由網址 ?pin= 或輸入框帶入）
+   ════════════════════════════════════════════════════════════ */
+function cleanUrl(){
+  const u = new URL(location.href);
+  u.searchParams.delete('pin'); u.hash = '';
+  return u.toString();
+}
+async function openConsole(pin){
+  try { await call({ action:'reveal', pin: pin, on: S.revealed ? 1 : 0 }); }
+  catch (e) { return false; }
+  S.pin = pin;
+  document.getElementById('sec-console').hidden = false;
+  document.getElementById('sec-login').hidden = true;
+  const url = cleanUrl();
+  document.getElementById('url').textContent = url;
+  document.getElementById('copy').onclick = async () => {
+    try { await navigator.clipboard.writeText(url);
+          document.getElementById('copy').textContent = '已複製 ✓'; }
+    catch(e){ document.getElementById('copy').textContent = '請手動複製'; }
+  };
+  document.getElementById('reveal').onclick = async () => {
+    const b = document.getElementById('reveal'); b.disabled = true;
+    try { absorb(await call({ action:'reveal', pin:S.pin, on: S.revealed ? 0 : 1 })); }
+    catch(e){ document.getElementById('chint').textContent = '揭曉失敗：' + e.message; }
+    b.disabled = false;
+  };
+  document.getElementById('clear').onclick = async () => {
+    const b = document.getElementById('clear');
+    b.disabled = true; b.textContent = '清除中…';
+    try { absorb(await call({ action:'clear', pin:S.pin })); b.textContent = '已清除'; }
+    catch(e){ b.textContent = '清除失敗'; }
+    setTimeout(() => { b.disabled = false; b.textContent = '清除全部票'; }, 1800);
+  };
+  drawQr(url);
+  return true;
+}
+document.getElementById('pinGo').onclick = async () => {
+  const v = document.getElementById('pinInput').value.trim();
+  if (!v) return;
+  document.getElementById('pinMsg').textContent = '確認中…';
+  const ok = await openConsole(v);
+  document.getElementById('pinMsg').textContent = ok ? '' : '密碼不對，或連不上後端。';
+};
+document.getElementById('pinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('pinGo').click();
+});
+function drawQr(url){
+  const box = document.getElementById('qr');
+  const make = () => {
+    if (typeof QRCode !== 'function') return false;
+    box.innerHTML = '';
+    try { new QRCode(box, { text:url, width:240, height:240,
+            colorDark:'#141F29', colorLight:'#ffffff' }); return true; }
+    catch(e){ return false; }
+  };
+  if (make()) return;
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+  s.onload = () => { if (!make()) box.textContent = '請用右邊的連結'; };
+  s.onerror = () => { box.textContent = '請用右邊的連結'; };
+  document.head.appendChild(s);
+}
+
+/* ════════════════════════════════════════════════════════════
+   ⑩  起手
+   ════════════════════════════════════════════════════════════ */
+try {
+  const mine = JSON.parse(localStorage.getItem('vote9.mine') || 'null');
+  if (mine && mine.scr && mine.exam){
+    S.pick.scr = new Set(mine.scr); S.pick.exam = new Set(mine.exam); S.sent = true;
+    document.querySelectorAll('.row').forEach((row, i) => {
+      const code = CARDS[i].c, bs = row.querySelectorAll('.tog');
+      bs[0].setAttribute('aria-pressed', S.pick.scr.has(code) ? 'true' : 'false');
+      bs[1].setAttribute('aria-pressed', S.pick.exam.has(code) ? 'true' : 'false');
+    });
+  }
+} catch(e){}
+
+document.getElementById('setup').hidden = !!API;
+setNet(false);
+renderBars(); renderMx(); renderNotes(); syncPick();
+if (S.sent) msg('<b>上次已送出 ✓</b>　想改就直接改，改完再按一次。');
+
+async function poll(){
+  if (!API) return;
+  try { absorb(await call({ action:'state' })); }
+  catch(e){ setNet(false); }
+}
+if (API){
+  poll();
+  setInterval(poll, POLL_MS);
+  const qp = QS.get('pin');
+  if (qp) openConsole(qp);
+}
+</script>
+
+</body>
+</html>
