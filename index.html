@@ -363,22 +363,48 @@ body.fit .doneCard{padding:calc(12px * var(--k)) calc(14px * var(--k))}
 body.fit .doneCard h2{font-size:calc(16px * var(--k))}
 body.fit .doneCard p{font-size:calc(13.5px * var(--k))}
 
-/* 講者入口在投票畫面上收成一行，按了才展開，不跟九題搶高度 */
-body.fit #sec-login{margin-top:auto;border-top:1px solid var(--rule);
-  padding-top:calc(9px * var(--k))}
-body.fit #sec-login .shead{border-bottom:0;padding-bottom:0;margin-bottom:0;cursor:pointer}
-body.fit #sec-login .shead h2{font-family:inherit;font-weight:700;color:var(--ink3);
-  font-size:calc(13px * var(--k))}
-body.fit #sec-login .shead h2::after{content:" ▸";font-size:.85em}
-body.fit #sec-login.open .shead h2::after{content:" ▾"}
-body.fit #sec-login .lede,
-body.fit #sec-login .pinrow{display:none}
-body.fit #sec-login.open .pinrow{display:flex;margin-top:calc(8px * var(--k))}
-body.fit #sec-login.open .lede{display:block;font-size:calc(12px * var(--k));
-  margin:calc(5px * var(--k)) 0 0}
-body.fit #sec-login .pinrow input,
-body.fit #sec-login .pinrow .btn{font-size:calc(13.5px * var(--k));
-  padding:calc(7px * var(--k)) calc(11px * var(--k))}
+body.fit .lgbox{font-size:calc(12.5px * var(--k))}
+body.fit .lgtog{font-size:calc(12.5px * var(--k));padding:calc(4px * var(--k)) calc(10px * var(--k))}
+body.fit .lgrow input,
+body.fit .lgo{font-size:calc(12.5px * var(--k));padding:calc(5px * var(--k)) calc(9px * var(--k))}
+
+/* ══ 講者入口：放在最上面那條狀態列 ══
+   放在頁尾會吃掉投票畫面的高度，而且講者要找還得捲到底。 */
+.lgbox{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+body.presenter .phase{margin-left:auto}
+.lgtog{font:inherit;font-size:12.5px;font-weight:700;color:var(--ink3);cursor:pointer;
+  background:transparent;border:1px solid var(--rule);border-radius:100px;padding:4px 11px;
+  white-space:nowrap}
+.lgtog:hover{border-color:var(--ink3);color:var(--ink)}
+.lgtog[aria-expanded="true"]{background:var(--panel2);color:var(--ink);border-color:var(--ink3)}
+.lgtog::after{content:" ▸";font-size:.85em}
+.lgtog[aria-expanded="true"]::after{content:" ▾"}
+.lgrow{display:flex;align-items:center;gap:6px}
+.lgrow[hidden]{display:none!important}
+.lgrow input{font:inherit;font-size:12.5px;padding:5px 9px;border-radius:6px;width:9.5em;
+  border:1px solid var(--rule);background:var(--panel);color:var(--ink)}
+.lgrow input:focus{outline:2px solid var(--ink);outline-offset:1px}
+.lgo{font:inherit;font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:6px;
+  border:1.5px solid var(--ink);background:var(--ink);color:var(--ground);cursor:pointer;
+  white-space:nowrap}
+.lgo[disabled]{opacity:.45;cursor:default}
+.lgmsg{font-size:11.5px;color:var(--hot)}
+.lgmsg:empty{display:none}
+
+/* ══ 講者模式：控制台擺第一個，投票那九題收起來 ══ */
+body.presenter .voterOnly{display:none}
+body.presenter #sec-console{order:-1}
+.lnk{font:inherit;font-size:inherit;color:var(--ink2);background:none;border:0;padding:0;
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.lnk:hover{color:var(--ink)}
+.pb.wbbtn[aria-pressed="true"]{background:#0f3f6b;border-color:#0f3f6b;color:#fff}
+
+/* 講者畫面多半就是投影出去的那一面，標頭也攤成一行，高度留給統計圖 */
+body.presenter header{padding:12px 20px}
+body.presenter header .wrap{display:flex;align-items:baseline;gap:6px 18px;flex-wrap:wrap}
+body.presenter header .eyebrow{flex:0 0 100%;margin-bottom:0}
+body.presenter header h1{flex:0 0 auto;font-size:22px;line-height:1.2}
+body.presenter header p{flex:1 1 280px;max-width:none;margin:0;font-size:12.5px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -394,11 +420,20 @@ body.fit #sec-login .pinrow .btn{font-size:calc(13.5px * var(--k));
 
 <div class="status">
   <div class="wrap">
-    <div class="stat"><span>我的選擇</span><b><span id="myS">0</span>/3</b><span>篩選</span></div>
-    <div class="stat"><b><span id="myE">0</span>/3</b><span>會考</span></div>
+    <div class="stat voterOnly"><span>我的選擇</span><b><span id="myS">0</span>/3</b><span>篩選</span></div>
+    <div class="stat voterOnly"><b><span id="myE">0</span>/3</b><span>會考</span></div>
     <div class="stat presOnly" hidden><b id="nVoters">0</b><span>人已投票</span></div>
     <div class="stat presOnly" hidden><span class="netdot" id="netdot"></span><span id="nettxt">連線中…</span></div>
     <div class="phase presOnly" id="phase" hidden>尚未揭曉</div>
+    <!-- 講者入口放在最上面這一條，不要佔掉投票畫面的高度 -->
+    <div class="lgbox" id="lgbox">
+      <button class="lgtog" id="lgTog" aria-expanded="false">我是講者</button>
+      <span class="lgrow" id="lgRow" hidden>
+        <input type="password" id="pinInput" placeholder="講者密碼" autocomplete="off">
+        <button class="lgo" id="pinGo">開啟控制台</button>
+      </span>
+      <span class="lgmsg" id="pinMsg"></span>
+    </div>
   </div>
 </div>
 
@@ -487,20 +522,13 @@ body.fit #sec-login .pinrow .btn{font-size:calc(13.5px * var(--k));
           <button class="btn warn" id="clear">清除全部票</button>
         </div>
         <p class="chint" id="chint">老師端只看得到投票；統計與矩陣只有這裡、以及你按下去的投影畫面才會出現。
-        兩個投影是<b>分開的，一次顯示一個</b>；投影畫面右下角的 ✎ 可開白板標註。分享給老師的連結請用上面那一行，它不含密碼。</p>
+        兩個投影是<b>分開的，一次顯示一個</b>；投影畫面上方有<b>白板標註</b>鈕（右下角的 ✎ 也可以），
+        可以直接在統計圖或矩陣上畫線圈重點。分享給老師的連結請用上面那一行，它不含密碼。
+        <button class="lnk" id="showPick">我也要投一票</button></p>
       </div>
     </div>
   </section>
 
-  <section id="sec-login">
-    <div class="shead"><h2>我是講者</h2><div class="kick">控制台</div></div>
-    <p class="lede">輸入講者密碼即可開啟控制台與投影。老師端不需要密碼，也不需要登入。</p>
-    <div class="pinrow">
-      <input type="password" id="pinInput" placeholder="講者密碼" autocomplete="off">
-      <button class="btn ghost" id="pinGo">開啟控制台</button>
-      <span class="sendmsg" id="pinMsg"></span>
-    </div>
-  </section>
 </main>
 
 <footer>
@@ -518,6 +546,7 @@ body.fit #sec-login .pinrow .btn{font-size:calc(13.5px * var(--k));
     <span class="wb-sep"></span>
     <button class="pb" id="pbTrack" hidden>切換：篩選／會考</button>
     <span class="pmeta" id="projMeta"></span>
+    <button class="pb wbbtn" id="pbWb">✎ 白板標註</button>
     <button class="pb" id="pbFull">全螢幕</button>
     <button class="pb close" id="pbClose">關閉投影</button>
   </div>
@@ -1080,8 +1109,13 @@ function wbSetOpen(on){
   wbToggle.classList.toggle('on', on);
   wbToggle.textContent = on ? '✕' : '✎';
   wbToggle.title = on ? '關閉白板標註層' : '開啟白板標註層';
+  /* 投影列上的那顆才是看得見的入口，右下角的 ✎ 在投影幕上太容易被忽略 */
+  const pbw = document.getElementById('pbWb');
+  pbw.setAttribute('aria-pressed', on ? 'true' : 'false');
+  pbw.textContent = on ? '✕ 關閉白板' : '✎ 白板標註';
 }
 wbToggle.onclick = () => wbSetOpen(wbOverlay.hidden);
+document.getElementById('pbWb').onclick = () => wbSetOpen(wbOverlay.hidden);
 document.getElementById('wbCloseBtn').onclick = () => wbSetOpen(false);
 addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
@@ -1182,11 +1216,15 @@ function cleanUrl(){
 }
 function showPresenterUI(){
   S.presenter = true;
+  document.body.classList.add('presenter');
   document.querySelectorAll('.presOnly').forEach(el => el.hidden = false);
   document.getElementById('sec-res').hidden = false;
   document.getElementById('sec-mx').hidden = false;
   document.getElementById('sec-console').hidden = false;
-  document.getElementById('sec-login').hidden = true;
+  /* 講者不投票：九題和「已送出」都收起來，控制台用 CSS order 排到第一個 */
+  document.getElementById('sec-pick').hidden = true;
+  document.getElementById('sec-done').hidden = true;
+  document.getElementById('lgbox').hidden = true;
   renderNotes();
   fitOnePage();           // 控制台出來了，解除「一頁到底」的縮放與鎖捲
 }
@@ -1230,6 +1268,14 @@ async function openConsole(pin){
   };
   document.getElementById('projBars').onclick = () => openProj('bars');
   document.getElementById('projMx').onclick   = () => openProj('mx');
+  /* 講者本人也想投一票時，把九題叫回來 */
+  document.getElementById('showPick').onclick = () => {
+    const sec = document.getElementById('sec-pick');
+    sec.hidden = !sec.hidden;
+    document.querySelectorAll('.voterOnly').forEach(el => el.style.display = sec.hidden ? '' : 'flex');
+    document.getElementById('showPick').textContent = sec.hidden ? '我也要投一票' : '收起投票畫面';
+    if (!sec.hidden) sec.scrollIntoView({ behavior:'smooth', block:'start' });
+  };
   drawQr(url);
   startPresenterLoop();
   return true;
@@ -1249,6 +1295,16 @@ document.getElementById('pinGo').onclick = async () => {
 document.getElementById('pinInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('pinGo').click();
 });
+/* 頂端的「我是講者」：平常只是一顆小按鈕，按了才長出密碼欄 */
+document.getElementById('lgTog').onclick = () => {
+  const row = document.getElementById('lgRow'), tog = document.getElementById('lgTog');
+  const open = row.hidden;
+  row.hidden = !open;
+  tog.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) document.getElementById('pinInput').focus();
+  else document.getElementById('pinMsg').textContent = '';
+  scheduleFit();
+};
 function drawQr(url){
   const box = document.getElementById('qr');
   const make = () => {
@@ -1306,7 +1362,6 @@ document.addEventListener('visibilitychange', () => {
    講者控制台內容多得多，維持原本的捲動行為。
    ════════════════════════════════════════════════════════════ */
 const mainEl = document.querySelector('main');
-const loginSec = document.getElementById('sec-login');
 const K_MIN = 0.40;
 /* 兩欄排版把高度砍掉快一半，常常會有剩。有剩就把字放大，
    所以上限開到 1.35——這是「一頁到底」附帶的好處，不是只會縮小。 */
@@ -1351,14 +1406,6 @@ window.addEventListener('resize', scheduleFit);
 window.addEventListener('orientationchange', scheduleFit);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
 
-/* 講者入口收成一行，點標題才展開 */
-loginSec.querySelector('.shead').addEventListener('click', () => {
-  if (!document.body.classList.contains('fit')) return;
-  loginSec.classList.toggle('open');
-  if (loginSec.classList.contains('open')) document.getElementById('pinInput').focus();
-  fitOnePage();
-});
-
 /* ════════════════════════════════════════════════════════════
    ⑭  起手
    ════════════════════════════════════════════════════════════ */
@@ -1387,3 +1434,4 @@ if (API && qp) openConsole(qp);
 
 </body>
 </html>
+
