@@ -528,15 +528,37 @@ const myId = (function(){
 /* ════════════════════════════════════════════════════════════
    ④  跟後端說話（一律 GET，避開 CORS 預檢）
    ════════════════════════════════════════════════════════════ */
-async function call(params){
+/* Apps Script 冷啟動時一次來回可能要 5~20 秒，偶爾還會吐出一頁 HTML 錯誤畫面。
+   所以：①自己設逾時，不要無限等 ②逾時或壞回應就自動再試一次
+   （投票是用 id 覆蓋寫入，重送同一票不會變成兩票，所以重試是安全的）。 */
+async function call(params, opt){
   if (!API) throw new Error('no-api');
-  const u = new URL(API);
-  Object.keys(params).forEach(k => u.searchParams.set(k, params[k]));
-  u.searchParams.set('_', Date.now());   // 防快取
-  const r = await fetch(u.toString(), { method:'GET', redirect:'follow' });
-  const j = await r.json();
-  if (j && j.ok === false) throw new Error(j.error || 'error');
-  return j;
+  const o = opt || {};
+  const tries = o.retry ? 2 : 1;
+  const limit = o.timeout || 35000;
+  let last = new Error('error');
+  for (let k = 0; k < tries; k++){
+    const u = new URL(API);
+    Object.keys(params).forEach(x => u.searchParams.set(x, params[x]));
+    u.searchParams.set('_', Date.now());   // 防快取
+    const ac = new AbortController();
+    const tm = setTimeout(() => ac.abort(), limit);
+    try {
+      const r = await fetch(u.toString(), { method:'GET', redirect:'follow', signal: ac.signal });
+      const txt = await r.text();
+      let j;
+      try { j = JSON.parse(txt); }
+      catch (e) { throw new Error('後端忙不過來（回了一頁錯誤畫面）'); }
+      if (j && j.ok === false) throw new Error(j.error || 'error');
+      return j;
+    } catch (e) {
+      last = (e && e.name === 'AbortError')
+        ? new Error('等太久沒有回應')
+        : (e instanceof Error ? e : new Error(String(e)));
+      if (String(last.message).indexOf('密碼') >= 0) break;   // 密碼錯就不用重試了
+    } finally { clearTimeout(tm); }
+  }
+  throw last;
 }
 let netFails = 0;
 function absorb(j){
@@ -585,6 +607,7 @@ function toggle(k, code, btn){
   if (set.has(code)) set.delete(code);
   else { if (set.size >= 3) { flash(k); return; } set.add(code); }
   btn.setAttribute('aria-pressed', set.has(code) ? 'true' : 'false');
+  msgSticky = false;            // 開始改選擇了，剛才的成功／失敗訊息就可以讓位
   syncPick();
 }
 function flash(k){
@@ -603,27 +626,51 @@ function syncPick(){
   const send = document.getElementById('send');
   send.disabled = !ok || !API;
   send.textContent = S.sent ? '更新我的選擇' : '送出我的選擇';
+  if (msgSticky) return;        // 送出結果的訊息要留在畫面上，不可以被這裡蓋掉
   if (!API) msg('這一份還沒接上投票資料，選擇不會被統計。');
   else if (!ok) msg('兩邊各選三個就可以送出。');
   else if (!S.sent) msg('選好了，按左邊送出。');
 }
-function msg(t){ document.getElementById('sendmsg').innerHTML = t; }
+var msgSticky = false;          // 用 var：syncPick 在它上面，要靠提升才不會踩到 TDZ
+function msg(t, sticky){
+  document.getElementById('sendmsg').innerHTML = t;
+  msgSticky = !!sticky;
+}
+
+/* 送出要等後端，慢的時候十幾秒都有可能。畫面上要有秒數在跳，
+   老師才知道是在等、不是當掉了，也才不會一直重按。 */
+let sendTick = null;
+function sendTickStart(){
+  let s = 0;
+  clearInterval(sendTick);
+  msg('送出中…', true);
+  sendTick = setInterval(() => {
+    s++;
+    msg('送出中…（已等 ' + s + ' 秒）　後端偶爾要 10～20 秒，請先不要重整。', true);
+  }, 1000);
+}
+function sendTickStop(){ clearInterval(sendTick); sendTick = null; }
 
 document.getElementById('send').onclick = async () => {
   const send = document.getElementById('send');
-  send.disabled = true; msg('送出中…');
+  send.disabled = true;
+  sendTickStart();
   try {
     const j = await call({ action:'vote', id:myId,
-      scr:[...S.pick.scr].join(','), exam:[...S.pick.exam].join(',') });
+      scr:[...S.pick.scr].join(','), exam:[...S.pick.exam].join(',') },
+      { retry:true, timeout:35000 });
+    sendTickStop();
     S.sent = true;
     try { localStorage.setItem('vote9.mine',
       JSON.stringify({ scr:[...S.pick.scr], exam:[...S.pick.exam] })); } catch(e){}
     absorb(j);
     document.getElementById('sec-done').hidden = false;
-    msg('<b>已送出 ✓</b>　想改就直接改，改完再按一次。');
+    msg('<b>已送出 ✓</b>　想改就直接改，改完再按一次。', true);
   } catch (e) {
+    sendTickStop();
     netFails = 2; setNet('bad');
-    msg('送不出去（' + e.message + '），請再按一次。');
+    msg('<b>送不出去</b>（' + e.message + '）。再按一次就好——' +
+        '同一台裝置重送不會變成兩票，就算剛才其實已經寫進去了也一樣。', true);
   }
   syncPick();
 };
@@ -859,6 +906,9 @@ let wbDrawing = false, wbLastX = 0, wbLastY = 0;
 function wbInit(){
   if (wbReady) return;
   const w = window.innerWidth, h = window.innerHeight;
+  /* 視窗還沒有尺寸時（分頁在背景、剛還原）先不要定案，
+     否則 canvas 會永遠停在 0×0，白板打得開卻畫不出東西 */
+  if (!w || !h) return;
   wbCanvas.width = Math.round(w * wbScale);
   wbCanvas.height = Math.round(h * wbScale);
   wbCanvas.style.width = w + 'px';
@@ -1036,8 +1086,16 @@ function showPresenterUI(){
   renderNotes();
 }
 async function openConsole(pin){
-  try { await call({ action:'reveal', pin: pin, on: S.revealed ? 1 : 0 }); }
-  catch (e) { return false; }
+  /* 用一次「維持現狀」的揭曉指令來驗密碼：對就通，錯就被後端擋下來 */
+  try { await call({ action:'reveal', pin: pin, on: S.revealed ? 1 : 0 },
+                   { retry:true, timeout:35000 }); }
+  catch (e) {
+    document.getElementById('pinMsg').textContent =
+      (String(e.message).indexOf('密碼') >= 0)
+        ? '密碼不對。（密碼寫在 Apps Script 的 var PIN 那一行）'
+        : '連不上後端（' + e.message + '），請再按一次。';
+    return false;
+  }
   S.pin = pin;
   showPresenterUI();
   const url = cleanUrl();
@@ -1048,15 +1106,20 @@ async function openConsole(pin){
     catch(e){ document.getElementById('copy').textContent = '請手動複製'; }
   };
   document.getElementById('reveal').onclick = async () => {
-    const b = document.getElementById('reveal'); b.disabled = true;
-    try { absorb(await call({ action:'reveal', pin:S.pin, on: S.revealed ? 0 : 1 })); }
-    catch(e){ document.getElementById('chint').textContent = '揭曉失敗：' + e.message; }
+    const b = document.getElementById('reveal');
+    const lab = b.textContent;
+    b.disabled = true; b.textContent = '處理中…';
+    try { absorb(await call({ action:'reveal', pin:S.pin, on: S.revealed ? 0 : 1 },
+                            { retry:true, timeout:35000 })); }
+    catch(e){ document.getElementById('chint').textContent = '揭曉失敗：' + e.message + '（再按一次即可）';
+              b.textContent = lab; }
     b.disabled = false;
   };
   document.getElementById('clear').onclick = async () => {
     const b = document.getElementById('clear');
     b.disabled = true; b.textContent = '清除中…';
-    try { absorb(await call({ action:'clear', pin:S.pin })); b.textContent = '已清除'; }
+    try { absorb(await call({ action:'clear', pin:S.pin }, { retry:true, timeout:35000 }));
+          b.textContent = '已清除'; }
     catch(e){ b.textContent = '清除失敗'; }
     setTimeout(() => { b.disabled = false; b.textContent = '清除全部票'; }, 1800);
   };
@@ -1069,9 +1132,14 @@ async function openConsole(pin){
 document.getElementById('pinGo').onclick = async () => {
   const v = document.getElementById('pinInput').value.trim();
   if (!v) return;
-  document.getElementById('pinMsg').textContent = '確認中…';
+  const pm = document.getElementById('pinMsg');
+  const go = document.getElementById('pinGo');
+  go.disabled = true;
+  let s = 0; pm.textContent = '確認中…';
+  const t = setInterval(() => { pm.textContent = '確認中…（已等 ' + (++s) + ' 秒）'; }, 1000);
   const ok = await openConsole(v);
-  document.getElementById('pinMsg').textContent = ok ? '' : '密碼不對，或連不上後端。';
+  clearInterval(t); go.disabled = false;
+  if (ok) pm.textContent = '';       // 失敗訊息由 openConsole 自己寫，這裡不要蓋掉
 };
 document.getElementById('pinInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('pinGo').click();
@@ -1104,7 +1172,7 @@ async function refreshOnce(){
   busy = true;
   const btn = document.getElementById('refresh');
   const old = btn.textContent; btn.textContent = '更新中…'; btn.disabled = true;
-  try { absorb(await call({ action:'state' })); return true; }
+  try { absorb(await call({ action:'state' }, { timeout:35000 })); return true; }
   catch(e){ netFails++; if (netFails >= 2) setNet('bad'); return false; }
   finally { busy = false; btn.textContent = old; btn.disabled = false; }
 }
@@ -1120,6 +1188,10 @@ async function presenterLoop(){
   pTimer = setTimeout(presenterLoop, pWait);
 }
 function startPresenterLoop(){ pWait = POLL_MS; presenterLoop(); }
+/* 分頁切走時迴圈會跳過查詢；切回來要馬上補一次，不要傻等退避時間 */
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && S.presenter){ pWait = POLL_MS; presenterLoop(); }
+});
 
 /* ════════════════════════════════════════════════════════════
    ⑬  起手
@@ -1140,7 +1212,7 @@ try {
 document.getElementById('setup').hidden = !!API;
 setNet(API ? 'wait' : 'bad');
 renderBars(); renderMx(); renderNotes(); renderProj(); syncPick();
-if (S.sent) msg('<b>上次已送出 ✓</b>　想改就直接改，改完再按一次。');
+if (S.sent) msg('<b>上次已送出 ✓</b>　想改就直接改，改完再按一次。', true);
 
 const qp = QS.get('pin');
 if (API && qp) openConsole(qp);
