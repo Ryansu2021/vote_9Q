@@ -285,6 +285,82 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
 .wb-toolbar button.wb.danger{color:#b3261e;border-color:#e8c4c0}
 .wb-toolbar button.wb[disabled]{opacity:.5;cursor:default}
 .wb-wid{font-size:11.5px;color:#4b5764;font-variant-numeric:tabular-nums;min-width:26px}
+
+/* ══ 一頁到底：老師端的投票畫面永遠整頁看得到，不必捲動 ══
+   所有會影響高度的尺寸都寫成 calc(原值 * var(--k))，
+   由 JS 二分搜尋算出塞得下的最大 k。k=1 就是原本的設計尺寸。 */
+body.fit{--k:1;height:100vh;height:100svh;overflow:hidden;
+  display:flex;flex-direction:column}
+/* header / main 都有 margin:0 auto，在 flex 直排裡「交叉軸的 auto margin」
+   會蓋掉 stretch，讓它縮成內容寬度並置中——所以這裡要把寬度補回來 */
+body.fit > header, body.fit > .status, body.fit > main, body.fit > footer{width:100%}
+body.fit main{flex:1 1 auto;min-height:0;overflow:hidden;
+  padding:calc(16px * var(--k)) 20px calc(8px * var(--k));
+  gap:calc(18px * var(--k))}
+body.fit main > section{flex:0 0 auto}          /* 不准壓縮，高度只靠 k 調 */
+/* 真的塞不下（視窗極矮）就讓它可以捲，總比切掉好 */
+body.fit.fit-scroll{height:auto;min-height:100vh;overflow:auto}
+body.fit.fit-scroll main{overflow:visible}
+
+/* 標頭在投票畫面攤成一行：標題在左、統計範圍在右，不要吃掉 170px 的高度 */
+body.fit header{padding:calc(11px * var(--k)) 20px calc(11px * var(--k))}
+body.fit header .wrap{display:flex;align-items:baseline;
+  gap:calc(6px * var(--k)) calc(18px * var(--k));flex-wrap:wrap}
+body.fit header .eyebrow{flex:0 0 100%;font-size:calc(11px * var(--k));margin-bottom:0}
+body.fit header h1{flex:0 0 auto;font-size:calc(22px * var(--k));line-height:1.2}
+body.fit header p{flex:1 1 280px;max-width:none;margin:0;
+  font-size:calc(12.5px * var(--k));line-height:1.45}
+/* 空間真的不夠時，先犧牲說明文字（該說的話狀態列和送出鈕旁邊都還有） */
+body.fit.tight header p{display:none}
+body.fit.tight header .eyebrow{display:none}
+body.fit.tight #sec-pick .lede{display:none}
+body.fit footer{display:none}
+body.fit .status .wrap{padding:calc(8px * var(--k)) 20px}
+body.fit .stat{font-size:calc(12.5px * var(--k))}
+body.fit .stat b{font-size:calc(19px * var(--k))}
+body.fit .phase{font-size:calc(12.5px * var(--k));padding:calc(3px * var(--k)) calc(11px * var(--k))}
+
+body.fit .shead{padding-bottom:calc(6px * var(--k));margin-bottom:calc(10px * var(--k))}
+body.fit .shead h2{font-size:calc(19px * var(--k))}
+body.fit .shead .kick{font-size:calc(11.5px * var(--k))}
+body.fit .lede{font-size:calc(13.5px * var(--k));margin-bottom:calc(10px * var(--k))}
+body.fit .togHead{font-size:calc(11.5px * var(--k));padding-bottom:calc(4px * var(--k))}
+body.fit .picks{gap:calc(6px * var(--k))}
+body.fit .row{padding:calc(8px * var(--k)) calc(10px * var(--k))
+              calc(8px * var(--k)) calc(12px * var(--k));
+  gap:calc(8px * var(--k))}
+body.fit .row .code{font-size:calc(14px * var(--k))}
+body.fit .row .name{font-size:calc(14.5px * var(--k))}
+body.fit .row .grade{font-size:calc(11px * var(--k))}
+body.fit .tog{min-height:calc(42px * var(--k));font-size:calc(13px * var(--k));
+  min-width:calc(74px * var(--k));padding:0 calc(10px * var(--k));
+  border-radius:calc(7px * var(--k))}
+body.fit .togHead span:nth-child(2),
+body.fit .togHead span:nth-child(3){min-width:calc(74px * var(--k))}
+body.fit .sendbar{margin-top:calc(12px * var(--k));gap:calc(12px * var(--k))}
+body.fit .btn{font-size:calc(14.5px * var(--k));
+  padding:calc(11px * var(--k)) calc(22px * var(--k))}
+body.fit .sendmsg{font-size:calc(12.5px * var(--k))}
+body.fit .doneCard{padding:calc(12px * var(--k)) calc(14px * var(--k))}
+body.fit .doneCard h2{font-size:calc(16px * var(--k))}
+body.fit .doneCard p{font-size:calc(13.5px * var(--k))}
+
+/* 講者入口在投票畫面上收成一行，按了才展開，不跟九題搶高度 */
+body.fit #sec-login{margin-top:auto;border-top:1px solid var(--rule);
+  padding-top:calc(9px * var(--k))}
+body.fit #sec-login .shead{border-bottom:0;padding-bottom:0;margin-bottom:0;cursor:pointer}
+body.fit #sec-login .shead h2{font-family:inherit;font-weight:700;color:var(--ink3);
+  font-size:calc(13px * var(--k))}
+body.fit #sec-login .shead h2::after{content:" ▸";font-size:.85em}
+body.fit #sec-login.open .shead h2::after{content:" ▾"}
+body.fit #sec-login .lede,
+body.fit #sec-login .pinrow{display:none}
+body.fit #sec-login.open .pinrow{display:flex;margin-top:calc(8px * var(--k))}
+body.fit #sec-login.open .lede{display:block;font-size:calc(12px * var(--k));
+  margin:calc(5px * var(--k)) 0 0}
+body.fit #sec-login .pinrow input,
+body.fit #sec-login .pinrow .btn{font-size:calc(13.5px * var(--k));
+  padding:calc(7px * var(--k)) calc(11px * var(--k))}
 </style>
 </head>
 <body>
@@ -472,7 +548,7 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
 /* ════════════════════════════════════════════════════════════
    ①  設定：Apps Script 網頁應用程式網址
    ════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbxXOQRhIVIru46Ohc99BH3mrGkb_Km1bZiScA1IQIwJoioILxDTLrk1r5pXv_irm_v9kA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbx2gDTVRY0NR13usoI_tRiTkCkEIJ2QJ7MdCYU6J5rKeo3ZanJwgubYHlt8Q38WfuX6Gg/exec';
 const POLL_MS = 6000;        // 只有講者畫面會用到；一次查詢約 3~4 秒，間隔要比它長
 
 /* ════════════════════════════════════════════════════════════
@@ -666,6 +742,7 @@ document.getElementById('send').onclick = async () => {
     absorb(j);
     document.getElementById('sec-done').hidden = false;
     msg('<b>已送出 ✓</b>　想改就直接改，改完再按一次。', true);
+    scheduleFit();                      // 多了「已送出」卡片，高度要重算
   } catch (e) {
     sendTickStop();
     netFails = 2; setNet('bad');
@@ -1084,6 +1161,7 @@ function showPresenterUI(){
   document.getElementById('sec-console').hidden = false;
   document.getElementById('sec-login').hidden = true;
   renderNotes();
+  fitOnePage();           // 控制台出來了，解除「一頁到底」的縮放與鎖捲
 }
 async function openConsole(pin){
   /* 用一次「維持現狀」的揭曉指令來驗密碼：對就通，錯就被後端擋下來 */
@@ -1194,7 +1272,65 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ════════════════════════════════════════════════════════════
-   ⑬  起手
+   ⑬  一頁到底
+   老師端只有九題要投，卻常常因為投影機或手機畫面比較矮而被切掉、
+   得捲動才看得到送出鈕。這裡量一次實際高度，二分搜尋出塞得下的
+   最大縮放倍率 k，CSS 那邊所有高度都寫成 calc(原值 * var(--k))。
+   講者控制台內容多得多，維持原本的捲動行為。
+   ════════════════════════════════════════════════════════════ */
+const mainEl = document.querySelector('main');
+const loginSec = document.getElementById('sec-login');
+const K_MIN = 0.40;
+
+function fitOverflows(){
+  return mainEl.scrollHeight > mainEl.clientHeight + 1;
+}
+/* 二分搜尋出塞得下的最大倍率 */
+function fitSearch(){
+  const b = document.body;
+  b.style.setProperty('--k', '1');
+  if (!fitOverflows()) return 1;           // 原尺寸就放得下，不要多此一舉縮小
+  let lo = K_MIN, hi = 1;
+  for (let i = 0; i < 14; i++){
+    const k = (lo + hi) / 2;
+    b.style.setProperty('--k', k.toFixed(4));
+    if (fitOverflows()) hi = k; else lo = k;
+  }
+  b.style.setProperty('--k', lo.toFixed(4));
+  return lo;
+}
+function fitOnePage(){
+  const b = document.body;
+  if (S.presenter){                       // 控制台不套用，讓它照常捲
+    b.classList.remove('fit', 'fit-scroll', 'tight');
+    b.style.removeProperty('--k');
+    return;
+  }
+  b.classList.add('fit');
+  b.classList.remove('fit-scroll', 'tight');
+  let k = fitSearch();
+  /* 要縮到看不清楚才塞得下的話，寧可先收掉說明文字，把字留大一點 */
+  if (k < 0.78){ b.classList.add('tight'); k = fitSearch(); }
+  /* 縮到最小還是塞不下（視窗真的太矮）就放行捲動，總比切掉好 */
+  if (fitOverflows()) b.classList.add('fit-scroll');
+}
+let fitTimer = null;
+function scheduleFit(){ clearTimeout(fitTimer); fitTimer = setTimeout(fitOnePage, 60); }
+
+window.addEventListener('resize', scheduleFit);
+window.addEventListener('orientationchange', scheduleFit);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
+
+/* 講者入口收成一行，點標題才展開 */
+loginSec.querySelector('.shead').addEventListener('click', () => {
+  if (!document.body.classList.contains('fit')) return;
+  loginSec.classList.toggle('open');
+  if (loginSec.classList.contains('open')) document.getElementById('pinInput').focus();
+  fitOnePage();
+});
+
+/* ════════════════════════════════════════════════════════════
+   ⑭  起手
    ════════════════════════════════════════════════════════════ */
 try {
   const mine = JSON.parse(localStorage.getItem('vote9.mine') || 'null');
@@ -1213,6 +1349,7 @@ document.getElementById('setup').hidden = !!API;
 setNet(API ? 'wait' : 'bad');
 renderBars(); renderMx(); renderNotes(); renderProj(); syncPick();
 if (S.sent) msg('<b>上次已送出 ✓</b>　想改就直接改，改完再按一次。', true);
+fitOnePage();
 
 const qp = QS.get('pin');
 if (API && qp) openConsole(qp);
