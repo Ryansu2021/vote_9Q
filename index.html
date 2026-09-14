@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>九條學習事先猜測</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap">
 <style>
 :root{
   color-scheme: light;
@@ -201,6 +201,90 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
 .pinrow input{font:inherit;font-size:14px;padding:8px 11px;border-radius:7px;
   border:1.5px solid var(--rule);background:var(--panel);color:var(--ink);width:170px}
 .pinrow input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.doneCard{background:var(--scrSoft);border:1px solid var(--scr);border-radius:10px;
+  padding:13px 16px}
+.doneCard h2{font-size:16px;color:var(--scr);margin-bottom:3px}
+.doneCard p{margin:0;font-size:13.5px;color:var(--ink2)}
+
+/* ── 投影模式（票數統計／象限矩陣，一次只顯示一個） ── */
+.proj{position:fixed;inset:0;z-index:500;background:var(--ground);
+  display:flex;flex-direction:column}
+.projbar{flex:0 0 auto;position:relative;z-index:770;display:flex;align-items:center;
+  gap:9px;flex-wrap:wrap;padding:10px 16px;background:var(--panel);
+  border-bottom:1px solid var(--rule)}
+.projbar .ptitle{font-family:"Noto Serif TC",Georgia,serif;font-size:19px;font-weight:700;
+  margin-right:6px}
+.projbar .pmeta{font-size:13px;color:var(--ink3);margin-left:auto;
+  font-variant-numeric:tabular-nums}
+.pb{font:inherit;font-size:13.5px;font-weight:700;padding:7px 14px;border-radius:7px;
+  border:1.5px solid var(--rule);background:var(--panel);color:var(--ink2);cursor:pointer}
+.pb:hover{border-color:var(--ink3);color:var(--ink)}
+.pb[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.pb.close{color:var(--hot);border-color:var(--hot)}
+.projbody{flex:1 1 auto;min-height:0;padding:18px 22px 22px;overflow:auto}
+.ppane{height:100%;display:flex;flex-direction:column;min-height:0}
+.ppane > .phead{font-size:clamp(14px,1.5vw,18px);color:var(--ink2);margin:0 0 12px}
+.ppane > .phead b{color:var(--ink)}
+#paneMx svg{width:100%;height:auto;max-height:calc(100vh - 190px);display:block;margin:auto}
+
+/* 投影用的大長條 */
+.pbars{display:flex;flex-direction:column;gap:0;flex:1 1 auto;min-height:0}
+.pbar{display:grid;grid-template-columns:clamp(96px,9vw,150px) 1fr 1fr;
+  gap:clamp(10px,1.4vw,22px);align-items:center;padding:clamp(4px,.7vh,10px) 4px;
+  border-bottom:1px solid var(--rule2)}
+.pbar:last-child{border-bottom:0}
+.pbar .plb{font-family:"JetBrains Mono",monospace;font-weight:700;
+  font-size:clamp(14px,1.5vw,21px);color:var(--ink)}
+.pbar .plb small{display:block;font-family:"Noto Sans TC",sans-serif;font-weight:400;
+  font-size:clamp(10px,.85vw,12.5px);color:var(--ink3);margin-top:1px}
+.ptrack{display:flex;align-items:center;gap:clamp(7px,.8vw,12px);min-width:0}
+.pgutter{flex:1;height:clamp(16px,2.4vh,30px);background:var(--panel2);border-radius:4px;
+  position:relative;min-width:20px}
+.pfill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .3s ease}
+.pfill.s{background:var(--scr)} .pfill.e{background:var(--exam)}
+.ppct{font-size:clamp(13px,1.4vw,20px);font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--ink);min-width:clamp(44px,4vw,62px);text-align:right}
+.ptruth{font-size:clamp(11px,1.1vw,15px);font-variant-numeric:tabular-nums;color:var(--ink3);
+  min-width:clamp(52px,5vw,78px);text-align:right}
+.ptruth.top{color:var(--hot);font-weight:700}
+.pbarhead{display:grid;grid-template-columns:clamp(96px,9vw,150px) 1fr 1fr;
+  gap:clamp(10px,1.4vw,22px);font-size:clamp(11px,1.1vw,14px);color:var(--ink3);
+  padding:0 4px 7px;flex:0 0 auto}
+
+/* ── 白板標註層 ── */
+/* 這顆開關必須疊在畫布（700）與工具列（710）之上，否則白板一開就點不到、關不掉 */
+#wbToggleBtn{position:fixed;right:20px;bottom:20px;z-index:760;width:48px;height:48px;
+  border-radius:50%;border:1px solid var(--rule);background:var(--panel);color:var(--exam);
+  font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(16,32,48,.2);
+  display:flex;align-items:center;justify-content:center;padding:0}
+#wbToggleBtn:hover{border-color:var(--exam)}
+#wbToggleBtn.on{background:var(--exam);color:#fff;border-color:var(--exam)}
+.wb-overlay{position:fixed;inset:0;z-index:700}
+#wbCanvas{position:absolute;left:0;top:0;background:transparent;touch-action:none}
+.wb-overlay.wb-opaque #wbCanvas{background:#fff}
+.wb-toolbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:710;
+  background:#fff;border:1px solid #dfe4ea;border-radius:11px;
+  box-shadow:0 8px 28px rgba(16,32,48,.24);padding:8px 11px;color:#16202b;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  resize:both;overflow:auto;min-width:330px;min-height:54px;max-width:96vw;max-height:62vh}
+.wb-grip{cursor:move;color:#7c8794;font-size:15px;line-height:1;padding:2px 3px;
+  user-select:none;-webkit-user-select:none}
+.wb-sep{width:1px;height:22px;background:#dfe4ea}
+.wb-toolbar .wlab{font-size:11px;color:#7c8794;white-space:nowrap}
+.wb-sw{width:22px;height:22px;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 0 1px #dfe4ea;cursor:pointer;padding:0}
+.wb-sw.active{box-shadow:0 0 0 2px #0f3f6b}
+.wb-toolbar input[type=color]{width:28px;height:26px;padding:0;border:1px solid #dfe4ea;
+  border-radius:5px;background:#fff;cursor:pointer}
+.wb-toolbar input[type=range]{width:96px}
+.wb-toolbar button.wb{font:inherit;font-size:12.5px;line-height:1;padding:6px 10px;
+  border-radius:7px;border:1px solid #dfe4ea;background:#fff;color:#4b5764;cursor:pointer;
+  white-space:nowrap}
+.wb-toolbar button.wb:hover{border-color:#7c8794;color:#16202b}
+.wb-toolbar button.wb.active{background:#0f3f6b;border-color:#0f3f6b;color:#fff;font-weight:600}
+.wb-toolbar button.wb.danger{color:#b3261e;border-color:#e8c4c0}
+.wb-toolbar button.wb[disabled]{opacity:.5;cursor:default}
+.wb-wid{font-size:11.5px;color:#4b5764;font-variant-numeric:tabular-nums;min-width:26px}
 </style>
 </head>
 <body>
@@ -216,18 +300,18 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
 
 <div class="status">
   <div class="wrap">
-    <div class="stat"><b id="nVoters">0</b><span>人已投票</span></div>
     <div class="stat"><span>我的選擇</span><b><span id="myS">0</span>/3</b><span>篩選</span></div>
     <div class="stat"><b><span id="myE">0</span>/3</b><span>會考</span></div>
-    <div class="stat"><span class="netdot" id="netdot"></span><span id="nettxt">連線中…</span></div>
-    <div class="phase" id="phase">尚未揭曉</div>
+    <div class="stat presOnly" hidden><b id="nVoters">0</b><span>人已投票</span></div>
+    <div class="stat presOnly" hidden><span class="netdot" id="netdot"></span><span id="nettxt">連線中…</span></div>
+    <div class="phase presOnly" id="phase" hidden>尚未揭曉</div>
   </div>
 </div>
 
 <main>
   <section class="setup" id="setup" hidden>
     <h2>還沒設定後端網址</h2>
-    <p>請打開 <code>index.html</code>，把第一行 <code>const API_URL = ''</code> 換成你的 Google Apps Script
+    <p>請打開 <code>index.html</code>，把 <code>const API_URL</code> 換成你的 Google Apps Script
     網頁應用程式網址（<code>…/exec</code> 結尾）。設定完成前，下面的畫面可以照常瀏覽，但投票不會被記錄。</p>
     <p>臨時測試也可以在網址後面加上 <code>?api=你的網址</code>。</p>
   </section>
@@ -247,8 +331,17 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
     </div>
   </section>
 
-  <section id="sec-res">
-    <div class="shead"><h2>全場怎麼看</h2><div class="kick">即時統計</div></div>
+  <section id="sec-done" hidden>
+    <div class="doneCard">
+      <h2>已送出 ✓</h2>
+      <p>全場統計由講師在投影幕上公布。想改自己的選擇，直接在上面改完再按一次「更新我的選擇」就好。</p>
+    </div>
+  </section>
+
+  <section id="sec-res" hidden>
+    <div class="shead"><h2>全場怎麼看</h2>
+      <button class="tb" id="refresh">更新統計</button>
+      <div class="kick">最後更新 <span id="lastup">—</span></div></div>
     <div class="barhead">
       <span>學習內容</span>
       <span><span class="swatch s"></span>認為篩選最常考的比例</span>
@@ -258,7 +351,7 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
     <div class="empty" id="resEmpty">還沒有人投票——投第一票的人會立刻出現在這裡。</div>
   </section>
 
-  <section id="sec-mx">
+  <section id="sec-mx" hidden>
     <div class="shead"><h2>把全場的票疊回矩陣</h2><div class="kick">實際次數 × 全場直覺</div></div>
     <p class="lede">位置是<b>實際命題次數</b>（橫軸會考、縱軸篩選，111–115 五年）；圓圈大小是<b>全場投給它的比例</b>。
     虛線是研習用的象限門檻：會考 ≧3 題、篩選 ≧5 題。</p>
@@ -284,18 +377,23 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
         <p class="lede" style="margin-bottom:0">請老師掃這個 QR code 或開下面的連結投票——<b>不必登入任何帳號</b>。</p>
         <div class="url" id="url"></div>
         <div class="crow">
-          <button class="btn" id="reveal">揭曉答案</button>
+          <button class="btn" id="projBars">投影：票數統計</button>
+          <button class="btn" id="projMx">投影：象限矩陣</button>
+        </div>
+        <div class="crow" style="margin-top:8px">
+          <button class="btn ghost" id="reveal">揭曉答案</button>
           <button class="btn ghost" id="copy">複製連結</button>
           <button class="btn warn" id="clear">清除全部票</button>
         </div>
-        <p class="chint" id="chint">這一區只有你看得到（網址帶著講者密碼時才出現）。分享給老師的連結請用上面那一行，它不含密碼。</p>
+        <p class="chint" id="chint">老師端只看得到投票；統計與矩陣只有這裡、以及你按下去的投影畫面才會出現。
+        兩個投影是<b>分開的，一次顯示一個</b>；投影畫面右下角的 ✎ 可開白板標註。分享給老師的連結請用上面那一行，它不含密碼。</p>
       </div>
     </div>
   </section>
 
   <section id="sec-login">
     <div class="shead"><h2>我是講者</h2><div class="kick">控制台</div></div>
-    <p class="lede">輸入講者密碼即可開啟揭曉與清票的控制台。老師端不需要密碼，也不需要登入。</p>
+    <p class="lede">輸入講者密碼即可開啟控制台與投影。老師端不需要密碼，也不需要登入。</p>
     <div class="pinrow">
       <input type="password" id="pinInput" placeholder="講者密碼" autocomplete="off">
       <button class="btn ghost" id="pinGo">開啟控制台</button>
@@ -310,13 +408,72 @@ footer{border-top:1px solid var(--rule);padding:14px 20px 30px;font-size:11.5px;
 </footer>
 <div id="tip"></div>
 
+<!-- ── 投影模式：票數統計／象限矩陣，一次只顯示一個 ── -->
+<div class="proj" id="proj" hidden>
+  <div class="projbar">
+    <span class="ptitle" id="projTitle">票數統計</span>
+    <button class="pb" id="pbBars" aria-pressed="true">票數統計</button>
+    <button class="pb" id="pbMx" aria-pressed="false">象限矩陣</button>
+    <span class="wb-sep"></span>
+    <button class="pb" id="pbTrack" hidden>切換：篩選／會考</button>
+    <span class="pmeta" id="projMeta"></span>
+    <button class="pb" id="pbFull">全螢幕</button>
+    <button class="pb close" id="pbClose">關閉投影</button>
+  </div>
+  <div class="projbody">
+    <div class="ppane" id="paneBars">
+      <p class="phead" id="pbarsHead"></p>
+      <div class="pbarhead">
+        <span>學習內容</span>
+        <span><span class="swatch s"></span>認為篩選測驗最常考</span>
+        <span><span class="swatch e"></span>認為教育會考最常考</span>
+      </div>
+      <div class="pbars" id="pbars"></div>
+    </div>
+    <div class="ppane" id="paneMx" hidden>
+      <p class="phead" id="pmxHead"></p>
+      <svg id="mxProj" viewBox="0 0 880 470" role="img"
+        aria-label="九條學習內容的實際命題次數散佈圖，圓圈大小為全場投票比例"></svg>
+    </div>
+  </div>
+
+  <!-- 白板必須放在 .proj 裡面：投影會用 requestFullscreen，
+       全螢幕元素會被提到 top layer，外面的按鈕再高的 z-index 也會被蓋住、點不到 -->
+  <button id="wbToggleBtn" title="開啟／關閉白板標註層" aria-label="白板" hidden>✎</button>
+  <div class="wb-overlay" id="wbOverlay" hidden><canvas id="wbCanvas"></canvas></div>
+  <div class="wb-toolbar" id="wbToolbar" hidden>
+    <span class="wb-grip" id="wbGrip" title="拖曳移動工具列">⠿</span>
+    <span class="wlab">顏色</span>
+    <button class="wb-sw active" data-c="#d81f26" style="background:#d81f26" title="紅"></button>
+    <button class="wb-sw" data-c="#1f6fd8" style="background:#1f6fd8" title="藍"></button>
+    <button class="wb-sw" data-c="#0e7a5a" style="background:#0e7a5a" title="綠"></button>
+    <button class="wb-sw" data-c="#e08a00" style="background:#e08a00" title="橘"></button>
+    <button class="wb-sw" data-c="#16202b" style="background:#16202b" title="黑"></button>
+    <input type="color" id="wbColor" value="#d81f26" title="自訂顏色">
+    <span class="wb-sep"></span>
+    <span class="wlab">粗細</span>
+    <input type="range" id="wbWidth" min="1" max="40" step="1" value="4">
+    <span class="wb-wid" id="wbWidthVal">4</span>
+    <span class="wb-sep"></span>
+    <button class="wb" id="wbEraser" title="橡皮擦（粗細沿用上面的滑桿）">橡皮擦</button>
+    <button class="wb" id="wbOpaque" title="白底／透明底切換">白底</button>
+    <button class="wb danger" id="wbClear" title="清除全部筆跡">清除</button>
+    <span class="wb-sep"></span>
+    <button class="wb" id="wbSaveInk" title="只存筆跡（透明背景 PNG）">存筆跡</button>
+    <button class="wb" id="wbSaveMerge" title="存下畫面＋筆跡合併的 PNG">存合併畫面</button>
+    <button class="wb" id="wbCloseBtn" title="關閉白板">關閉</button>
+  </div>
+</div>
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════
-   ①  設定：把 Apps Script 的網頁應用程式網址貼在這裡
+   ①  設定：Apps Script 網頁應用程式網址
    ════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbx2gDTVRY0NR13usoI_tRiTkCkEIJ2QJ7MdCYU6J5rKeo3ZanJwgubYHlt8Q38WfuX6Gg/exec';          // ← 例如 'https://script.google.com/macros/s/AKfy……/exec'
-const POLL_MS = 2500;        // 每隔幾毫秒抓一次全場統計
+const API_URL = 'https://script.google.com/macros/s/AKfycbx2gDTVRY0NR13usoI_tRiTkCkEIJ2QJ7MdCYU6J5rKeo3ZanJwgubYHlt8Q38WfuX6Gg/exec';
+const POLL_MS = 6000;        // 只有講者畫面會用到；一次查詢約 3~4 秒，間隔要比它長
 
 /* ════════════════════════════════════════════════════════════
    ②  資料：111–115 五年實際命題次數
@@ -355,7 +512,7 @@ const QS = new URLSearchParams(location.search);
 const API = (QS.get('api') || API_URL || '').trim();
 const S = { pick:{ scr:new Set(), exam:new Set() }, sent:false,
             n:0, tally:{ scr:{}, exam:{} }, revealed:false,
-            track:'scr', pin:'', online:false };
+            track:'scr', pin:'', presenter:false, proj:null };
 CARDS.forEach(d => { S.tally.scr[d.c] = 0; S.tally.exam[d.c] = 0; });
 
 const myId = (function(){
@@ -369,31 +526,36 @@ const myId = (function(){
 })();
 
 /* ════════════════════════════════════════════════════════════
-   ④  跟後端說話（一律用 GET，避開 CORS 預檢）
+   ④  跟後端說話（一律 GET，避開 CORS 預檢）
    ════════════════════════════════════════════════════════════ */
 async function call(params){
   if (!API) throw new Error('no-api');
   const u = new URL(API);
   Object.keys(params).forEach(k => u.searchParams.set(k, params[k]));
+  u.searchParams.set('_', Date.now());   // 防快取
   const r = await fetch(u.toString(), { method:'GET', redirect:'follow' });
   const j = await r.json();
   if (j && j.ok === false) throw new Error(j.error || 'error');
   return j;
 }
+let netFails = 0;
 function absorb(j){
   if (!j) return;
   S.n = j.n || 0;
   if (j.scr) S.tally.scr = j.scr;
   if (j.exam) S.tally.exam = j.exam;
   S.revealed = !!j.revealed;
-  setNet(true);
-  renderBars(); renderMx(); renderNotes();
+  netFails = 0; setNet('ok');
+  const d = new Date(), p = x => String(x).padStart(2,'0');
+  document.getElementById('lastup').textContent =
+    p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  renderBars(); renderMx(); renderNotes(); renderProj();
 }
-function setNet(ok){
-  S.online = ok;
+function setNet(state){          // 'wait' | 'ok' | 'bad'
   const d = document.getElementById('netdot'), t = document.getElementById('nettxt');
-  d.className = 'netdot ' + (ok ? 'ok' : 'bad');
-  t.textContent = ok ? '已連線' : (API ? '連不上投票資料' : '未設定後端');
+  if (!API){ d.className = 'netdot bad'; t.textContent = '未設定後端'; return; }
+  d.className = 'netdot ' + (state === 'ok' ? 'ok' : state === 'bad' ? 'bad' : '');
+  t.textContent = state === 'ok' ? '已連線' : state === 'bad' ? '連不上投票資料' : '連線中…';
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -457,40 +619,53 @@ document.getElementById('send').onclick = async () => {
     try { localStorage.setItem('vote9.mine',
       JSON.stringify({ scr:[...S.pick.scr], exam:[...S.pick.exam] })); } catch(e){}
     absorb(j);
+    document.getElementById('sec-done').hidden = false;
     msg('<b>已送出 ✓</b>　想改就直接改，改完再按一次。');
   } catch (e) {
-    setNet(false);
+    netFails = 2; setNet('bad');
     msg('送不出去（' + e.message + '），請再按一次。');
   }
   syncPick();
 };
 
 /* ════════════════════════════════════════════════════════════
-   ⑥  統計長條
+   ⑥  統計長條（頁內小圖＋投影大圖，同一份資料兩種尺寸）
    ════════════════════════════════════════════════════════════ */
-const barsEl = document.getElementById('bars');
-const barRefs = {};
-CARDS.forEach(d => {
-  const r = document.createElement('div');
-  r.className = 'bar';
-  r.innerHTML = '<div class="lb"><span class="mono">' + d.c + '</span></div>' +
-    trackHtml('s') + trackHtml('e');
-  r.title = d.n;
-  barsEl.appendChild(r);
-  const g = r.querySelectorAll('.fill'), p = r.querySelectorAll('.pctv'),
-        t = r.querySelectorAll('.truth');
-  barRefs[d.c] = { fill:[g[0], g[1]], pct:[p[0], p[1]], truth:[t[0], t[1]] };
-});
-function trackHtml(cls){
-  return '<div class="track"><div class="gutter"><div class="fill ' + cls +
-    '" style="width:0"></div></div><div class="pctv">—</div><div class="truth"></div></div>';
-}
-function renderBars(){
-  const n = S.n;
-  document.getElementById('nVoters').textContent = n;
-  document.getElementById('resEmpty').hidden = n > 0;
+const barRefs = {}, pbarRefs = {};
+(function buildBars(){
+  const barsEl = document.getElementById('bars'), pbarsEl = document.getElementById('pbars');
   CARDS.forEach(d => {
-    const r = barRefs[d.c];
+    const r = document.createElement('div');
+    r.className = 'bar';
+    r.innerHTML = '<div class="lb"><span class="mono">' + d.c + '</span></div>' +
+      trackHtml('s', false) + trackHtml('e', false);
+    r.title = d.n;
+    barsEl.appendChild(r);
+    barRefs[d.c] = grab(r, '.fill', '.pctv', '.truth');
+
+    const q = document.createElement('div');
+    q.className = 'pbar';
+    q.innerHTML = '<div class="plb">' + d.c + '<small>' + d.n + '</small></div>' +
+      trackHtml('s', true) + trackHtml('e', true);
+    pbarsEl.appendChild(q);
+    pbarRefs[d.c] = grab(q, '.pfill', '.ppct', '.ptruth');
+  });
+})();
+function trackHtml(cls, big){
+  return big
+    ? '<div class="ptrack"><div class="pgutter"><div class="pfill ' + cls +
+      '" style="width:0"></div></div><div class="ppct">—</div><div class="ptruth"></div></div>'
+    : '<div class="track"><div class="gutter"><div class="fill ' + cls +
+      '" style="width:0"></div></div><div class="pctv">—</div><div class="truth"></div></div>';
+}
+function grab(root, f, p, t){
+  const F = root.querySelectorAll(f), P = root.querySelectorAll(p), T = root.querySelectorAll(t);
+  return { fill:[F[0], F[1]], pct:[P[0], P[1]], truth:[T[0], T[1]] };
+}
+function paint(refs, big){
+  const n = S.n, base = big ? 'ptruth' : 'truth';
+  CARDS.forEach(d => {
+    const r = refs[d.c];
     [['scr',0],['exam',1]].forEach(([k,i]) => {
       const share = n ? (S.tally[k][d.c] || 0) / n : 0;
       r.fill[i].style.width = (share * 100).toFixed(1) + '%';
@@ -498,19 +673,27 @@ function renderBars(){
       if (S.revealed){
         const isTop = TOP[k].has(d.c);
         r.truth[i].textContent = d[k] + ' 題' + (isTop ? ' ★' : '');
-        r.truth[i].className = 'truth' + (isTop ? ' top' : '');
-      } else { r.truth[i].textContent = ''; r.truth[i].className = 'truth'; }
+        r.truth[i].className = base + (isTop ? ' top' : '');
+      } else {
+        r.truth[i].textContent = '';
+        r.truth[i].className = base;
+      }
     });
   });
 }
+function renderBars(){
+  document.getElementById('nVoters').textContent = S.n;
+  document.getElementById('resEmpty').hidden = S.n > 0;
+  paint(barRefs, false);
+}
 
 /* ════════════════════════════════════════════════════════════
-   ⑦  矩陣散佈圖
+   ⑦  矩陣散佈圖（頁內＋投影，同一支繪圖函式）
    ════════════════════════════════════════════════════════════ */
 const XMAX = 9, YMAX = 16, EX_T = 3, SC_T = 5;
 const M = { l:66, r:118, t:18, b:52 };
 function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-function renderMx(){
+function mxMarkup(){
   const W = 880, H = 470, pw = W - M.l - M.r, ph = H - M.t - M.b;
   const cx = v => M.l + (v / (XMAX - 1)) * pw;
   const cy = v => M.t + ph - (v / (YMAX - 1)) * ph;
@@ -541,18 +724,27 @@ function renderMx(){
     e.push('<text x="'+(x+r+6).toFixed(1)+'" y="'+(y+4).toFixed(1)+'" font-size="12" font-weight="'+(isTop?700:500)+
       '" fill="'+(isTop?css('--hot'):ink2)+'" font-family="JetBrains Mono, monospace">'+lab+'</text>');
   });
-  const svg = document.getElementById('mx');
-  svg.innerHTML = e.join('');
-  svg.querySelectorAll('.dot').forEach(el => {
+  return e.join('');
+}
+function renderMx(){
+  const html = mxMarkup();
+  ['mx','mxProj'].forEach(id => {
+    const svg = document.getElementById(id);
+    if (svg) svg.innerHTML = html;
+  });
+  const box = document.getElementById('mx');
+  if (box) box.querySelectorAll('.dot').forEach(el => {
     const d = CARDS.find(x => x.c === el.dataset.c);
     el.addEventListener('mouseenter', ev => showTip(ev, d));
     el.addEventListener('mousemove', moveTip);
     el.addEventListener('mouseleave', hideTip);
   });
-  document.getElementById('mnote').innerHTML = n
-    ? '目前 <b>' + n + '</b> 人投票。圓圈越大＝越多人認為它在「' + TRACKS[tk].label + '」最常考。'
+  const note = S.n
+    ? '目前 <b>' + S.n + '</b> 人投票。圓圈越大＝越多人認為它在「' + TRACKS[S.track].label + '」最常考。'
       + (S.revealed ? ' 粗框與橘色標籤是實際的前三名。' : ' 揭曉後會標出實際前三名。')
     : '還沒有人投票，圓點停在各自的實際命題次數上。';
+  document.getElementById('mnote').innerHTML = note;
+  document.getElementById('pmxHead').innerHTML = note;
 }
 const tip = document.getElementById('tip');
 function showTip(ev, d){
@@ -588,7 +780,7 @@ function renderNotes(){
       '<div class="note"><h3>' + x.h + '</h3><div class="figs">' + x.figs +
       '</div><p style="margin-top:6px">' + x.p + '</p></div>').join('');
   }
-  document.getElementById('sec-notes').hidden = !S.revealed;
+  document.getElementById('sec-notes').hidden = !(S.revealed && S.presenter);
   const ph = document.getElementById('phase');
   ph.textContent = S.revealed ? '已揭曉' : '尚未揭曉';
   ph.classList.toggle('on', S.revealed);
@@ -597,19 +789,257 @@ function renderNotes(){
 }
 
 /* ════════════════════════════════════════════════════════════
-   ⑨  講者控制台（密碼由網址 ?pin= 或輸入框帶入）
+   ⑨  投影模式（兩個畫面，一次一個）
+   ════════════════════════════════════════════════════════════ */
+const projEl = document.getElementById('proj');
+function renderProj(){
+  paint(pbarRefs, true);
+  document.getElementById('projMeta').textContent =
+    S.n + ' 人已投票　｜　' + (S.revealed ? '已揭曉' : '尚未揭曉');
+  document.getElementById('pbarsHead').innerHTML = S.n
+    ? '全場 <b>' + S.n + '</b> 人，各挑三條。'
+      + (S.revealed ? ' 右側數字是實際命題次數，★ 為該欄實際前三名。' : ' 揭曉後右側會出現實際命題次數。')
+    : '還沒有人投票。';
+}
+function openProj(which){
+  projEl.hidden = false;
+  document.getElementById('wbToggleBtn').hidden = false;
+  setPane(which);
+  renderProj();
+  try { if (projEl.requestFullscreen) projEl.requestFullscreen(); } catch(e){}
+}
+function setPane(which){
+  S.proj = which;
+  const bars = (which === 'bars');
+  document.getElementById('paneBars').hidden = !bars;
+  document.getElementById('paneMx').hidden = bars;
+  document.getElementById('projTitle').textContent = bars ? '票數統計' : '象限矩陣';
+  document.getElementById('pbBars').setAttribute('aria-pressed', bars);
+  document.getElementById('pbMx').setAttribute('aria-pressed', !bars);
+  document.getElementById('pbTrack').hidden = bars;
+  if (!bars) renderMx();
+}
+function closeProj(){
+  S.proj = null;
+  projEl.hidden = true;
+  document.getElementById('wbToggleBtn').hidden = true;
+  wbSetOpen(false);
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch(e){}
+}
+document.getElementById('pbBars').onclick  = () => setPane('bars');
+document.getElementById('pbMx').onclick    = () => setPane('mx');
+document.getElementById('pbTrack').onclick = () => { setTrack(S.track === 'scr' ? 'exam' : 'scr'); renderProj(); };
+document.getElementById('pbClose').onclick = closeProj;
+document.getElementById('pbFull').onclick  = () => {
+  try {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (projEl.requestFullscreen) projEl.requestFullscreen();
+  } catch(e){}
+};
+
+/* ════════════════════════════════════════════════════════════
+   ⑩  白板標註層
+   ════════════════════════════════════════════════════════════ */
+const wbToggle = document.getElementById('wbToggleBtn');
+const wbOverlay = document.getElementById('wbOverlay');
+const wbToolbar = document.getElementById('wbToolbar');
+const wbCanvas = document.getElementById('wbCanvas');
+const wbCtx = wbCanvas.getContext('2d');
+const wbEraserBtn = document.getElementById('wbEraser');
+const wbOpaqueBtn = document.getElementById('wbOpaque');
+const wbColorInp = document.getElementById('wbColor');
+const wbWidthInp = document.getElementById('wbWidth');
+const wbWidthVal = document.getElementById('wbWidthVal');
+const wbMergeBtn = document.getElementById('wbSaveMerge');
+let wbScale = Math.min(window.devicePixelRatio || 1, 2);
+let wbReady = false, wbColor = '#d81f26', wbWidth = 4, wbEraser = false;
+let wbDrawing = false, wbLastX = 0, wbLastY = 0;
+
+/* 只在第一次開啟時決定畫布尺寸；不隨視窗縮放重設，避免清掉筆跡 */
+function wbInit(){
+  if (wbReady) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  wbCanvas.width = Math.round(w * wbScale);
+  wbCanvas.height = Math.round(h * wbScale);
+  wbCanvas.style.width = w + 'px';
+  wbCanvas.style.height = h + 'px';
+  wbCtx.setTransform(wbScale, 0, 0, wbScale, 0, 0);
+  wbCtx.lineCap = 'round'; wbCtx.lineJoin = 'round';
+  wbReady = true;
+}
+function wbMode(){
+  wbCtx.globalCompositeOperation = wbEraser ? 'destination-out' : 'source-over';
+  wbCtx.strokeStyle = wbColor;
+  wbCtx.lineWidth = wbWidth;
+}
+function wbSetEraser(on){ wbEraser = on; wbEraserBtn.classList.toggle('active', on); }
+function wbSetColor(c){
+  wbColor = c; wbColorInp.value = c;
+  document.querySelectorAll('.wb-sw').forEach(b =>
+    b.classList.toggle('active', b.dataset.c && b.dataset.c.toLowerCase() === c.toLowerCase()));
+  wbSetEraser(false);                    // 選了顏色就是要畫，自動離開橡皮擦
+}
+function wbPos(e){
+  const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
+  const r = wbCanvas.getBoundingClientRect();
+  return { x: t.clientX - r.left, y: t.clientY - r.top };
+}
+function wbStart(e){
+  wbDrawing = true;
+  const p = wbPos(e); wbLastX = p.x; wbLastY = p.y;
+  wbMode();
+  wbCtx.beginPath(); wbCtx.moveTo(p.x, p.y); wbCtx.lineTo(p.x + .01, p.y + .01); wbCtx.stroke();
+  e.preventDefault();
+}
+function wbMove(e){
+  if (!wbDrawing) return;
+  const p = wbPos(e);
+  wbCtx.beginPath(); wbCtx.moveTo(wbLastX, wbLastY); wbCtx.lineTo(p.x, p.y); wbCtx.stroke();
+  wbLastX = p.x; wbLastY = p.y;
+  e.preventDefault();
+}
+function wbEnd(){ wbDrawing = false; }
+wbCanvas.addEventListener('mousedown', wbStart);
+wbCanvas.addEventListener('mousemove', wbMove);
+window.addEventListener('mouseup', wbEnd);
+wbCanvas.addEventListener('touchstart', wbStart, { passive:false });
+wbCanvas.addEventListener('touchmove', wbMove, { passive:false });
+wbCanvas.addEventListener('touchend', wbEnd);
+document.querySelectorAll('.wb-sw').forEach(b => b.onclick = () => wbSetColor(b.dataset.c));
+wbColorInp.oninput = e => wbSetColor(e.target.value);
+wbWidthInp.oninput = e => { wbWidth = +e.target.value; wbWidthVal.textContent = e.target.value; };
+wbEraserBtn.onclick = () => wbSetEraser(!wbEraser);
+wbOpaqueBtn.onclick = () => {
+  const on = wbOverlay.classList.toggle('wb-opaque');
+  wbOpaqueBtn.classList.toggle('active', on);
+  wbOpaqueBtn.textContent = on ? '透明底' : '白底';
+};
+document.getElementById('wbClear').onclick = () => {
+  wbCtx.save(); wbCtx.setTransform(1,0,0,1,0,0);
+  wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+  wbCtx.restore();
+};
+function wbSetOpen(on){
+  if (on) wbInit();
+  wbOverlay.hidden = !on;                // 用 hidden 切換，筆跡保留
+  wbToolbar.hidden = !on;
+  wbToggle.classList.toggle('on', on);
+  wbToggle.textContent = on ? '✕' : '✎';
+  wbToggle.title = on ? '關閉白板標註層' : '開啟白板標註層';
+}
+wbToggle.onclick = () => wbSetOpen(wbOverlay.hidden);
+document.getElementById('wbCloseBtn').onclick = () => wbSetOpen(false);
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!wbOverlay.hidden) wbSetOpen(false);      // 先關白板
+  else if (!projEl.hidden) closeProj();         // 再關投影
+});
+
+function wbStamp(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return '' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' +
+         p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+}
+function wbDownload(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+document.getElementById('wbSaveInk').onclick = () => {
+  wbCanvas.toBlob(b => b && wbDownload(b, '白板標註_' + wbStamp() + '.png'), 'image/png');
+};
+wbMergeBtn.onclick = () => {
+  if (typeof html2canvas !== 'function'){ wbMergeBtn.textContent = '合併失敗'; return; }
+  const label = wbMergeBtn.textContent;
+  wbMergeBtn.disabled = true; wbMergeBtn.textContent = '產生中…';
+  /* 投影中就只截投影畫面（全螢幕時 body 其他部分根本不在畫面上） */
+  const target = projEl.hidden ? document.body : projEl;
+  const tr = target.getBoundingClientRect();
+  html2canvas(target, {
+    scale: 1, backgroundColor: '#ffffff', useCORS: true, logging: false,
+    ignoreElements: el => el.id === 'wbOverlay' || el.id === 'wbToolbar' || el.id === 'wbToggleBtn'
+  }).then(bg => {
+    const m = document.createElement('canvas');
+    m.width = bg.width; m.height = bg.height;
+    const mc = m.getContext('2d');
+    mc.drawImage(bg, 0, 0);
+    mc.drawImage(wbCanvas, 0, 0, wbCanvas.width, wbCanvas.height,
+      Math.round(projEl.hidden ? window.scrollX : -tr.left),
+      Math.round(projEl.hidden ? window.scrollY : -tr.top),
+      Math.round(window.innerWidth), Math.round(window.innerHeight));
+    m.toBlob(b => {
+      if (b) wbDownload(b, '白板合併畫面_' + wbStamp() + '.png');
+      wbMergeBtn.disabled = false; wbMergeBtn.textContent = label;
+    }, 'image/png');
+  }).catch(() => { wbMergeBtn.disabled = false; wbMergeBtn.textContent = '合併失敗'; });
+};
+/* 工具列可拖曳：移動前先把寬高釘住，否則第一次拖曳會變胖 */
+(function(handleEl){
+  function onDown(e){
+    const isTouch = e.touches && e.touches[0];
+    const sx = isTouch ? e.touches[0].clientX : e.clientX;
+    const sy = isTouch ? e.touches[0].clientY : e.clientY;
+    const r = wbToolbar.getBoundingClientRect();
+    let moved = false, pinned = false;
+    function mv(ev){
+      const p = (ev.touches && ev.touches[0]) ? ev.touches[0] : ev;
+      const dx = p.clientX - sx, dy = p.clientY - sy;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      if (moved && !pinned){
+        wbToolbar.style.width = r.width + 'px';
+        wbToolbar.style.height = r.height + 'px';
+        pinned = true;
+      }
+      if (!moved) return;
+      const maxL = Math.max(0, window.innerWidth - wbToolbar.offsetWidth);
+      const maxT = Math.max(0, window.innerHeight - wbToolbar.offsetHeight);
+      wbToolbar.style.left = Math.max(0, Math.min(r.left + dx, maxL)) + 'px';
+      wbToolbar.style.top = Math.max(0, Math.min(r.top + dy, maxT)) + 'px';
+      wbToolbar.style.bottom = 'auto';
+      wbToolbar.style.transform = 'none';
+      ev.preventDefault();
+    }
+    function up(){
+      document.removeEventListener('mousemove', mv);
+      document.removeEventListener('mouseup', up);
+      document.removeEventListener('touchmove', mv);
+      document.removeEventListener('touchend', up);
+    }
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+    document.addEventListener('touchmove', mv, { passive:false });
+    document.addEventListener('touchend', up);
+    e.preventDefault();
+  }
+  handleEl.addEventListener('mousedown', onDown);
+  handleEl.addEventListener('touchstart', onDown, { passive:false });
+})(document.getElementById('wbGrip'));
+wbSetColor(wbColor);
+wbWidthVal.textContent = wbWidthInp.value;
+
+/* ════════════════════════════════════════════════════════════
+   ⑪  講者控制台
    ════════════════════════════════════════════════════════════ */
 function cleanUrl(){
   const u = new URL(location.href);
   u.searchParams.delete('pin'); u.hash = '';
   return u.toString();
 }
+function showPresenterUI(){
+  S.presenter = true;
+  document.querySelectorAll('.presOnly').forEach(el => el.hidden = false);
+  document.getElementById('sec-res').hidden = false;
+  document.getElementById('sec-mx').hidden = false;
+  document.getElementById('sec-console').hidden = false;
+  document.getElementById('sec-login').hidden = true;
+  renderNotes();
+}
 async function openConsole(pin){
   try { await call({ action:'reveal', pin: pin, on: S.revealed ? 1 : 0 }); }
   catch (e) { return false; }
   S.pin = pin;
-  document.getElementById('sec-console').hidden = false;
-  document.getElementById('sec-login').hidden = true;
+  showPresenterUI();
   const url = cleanUrl();
   document.getElementById('url').textContent = url;
   document.getElementById('copy').onclick = async () => {
@@ -630,7 +1060,10 @@ async function openConsole(pin){
     catch(e){ b.textContent = '清除失敗'; }
     setTimeout(() => { b.disabled = false; b.textContent = '清除全部票'; }, 1800);
   };
+  document.getElementById('projBars').onclick = () => openProj('bars');
+  document.getElementById('projMx').onclick   = () => openProj('mx');
   drawQr(url);
+  startPresenterLoop();
   return true;
 }
 document.getElementById('pinGo').onclick = async () => {
@@ -661,7 +1094,35 @@ function drawQr(url){
 }
 
 /* ════════════════════════════════════════════════════════════
-   ⑩  起手
+   ⑫  查詢節奏
+   老師端不背景輪詢（Apps Script 免費額度有限，一次查詢三、四秒，
+   三十支手機一起刷會直接被打到逾時）；只有講者控制台會自動更新。
+   ════════════════════════════════════════════════════════════ */
+let busy = false;
+async function refreshOnce(){
+  if (!API || busy) return false;
+  busy = true;
+  const btn = document.getElementById('refresh');
+  const old = btn.textContent; btn.textContent = '更新中…'; btn.disabled = true;
+  try { absorb(await call({ action:'state' })); return true; }
+  catch(e){ netFails++; if (netFails >= 2) setNet('bad'); return false; }
+  finally { busy = false; btn.textContent = old; btn.disabled = false; }
+}
+document.getElementById('refresh').onclick = refreshOnce;
+
+let pTimer = null, pWait = POLL_MS;
+async function presenterLoop(){
+  clearTimeout(pTimer);
+  if (!document.hidden){
+    const ok = await refreshOnce();
+    pWait = ok ? POLL_MS : Math.min(pWait * 2, 40000);
+  }
+  pTimer = setTimeout(presenterLoop, pWait);
+}
+function startPresenterLoop(){ pWait = POLL_MS; presenterLoop(); }
+
+/* ════════════════════════════════════════════════════════════
+   ⑬  起手
    ════════════════════════════════════════════════════════════ */
 try {
   const mine = JSON.parse(localStorage.getItem('vote9.mine') || 'null');
@@ -672,25 +1133,17 @@ try {
       bs[0].setAttribute('aria-pressed', S.pick.scr.has(code) ? 'true' : 'false');
       bs[1].setAttribute('aria-pressed', S.pick.exam.has(code) ? 'true' : 'false');
     });
+    document.getElementById('sec-done').hidden = false;
   }
 } catch(e){}
 
 document.getElementById('setup').hidden = !!API;
-setNet(false);
-renderBars(); renderMx(); renderNotes(); syncPick();
+setNet(API ? 'wait' : 'bad');
+renderBars(); renderMx(); renderNotes(); renderProj(); syncPick();
 if (S.sent) msg('<b>上次已送出 ✓</b>　想改就直接改，改完再按一次。');
 
-async function poll(){
-  if (!API) return;
-  try { absorb(await call({ action:'state' })); }
-  catch(e){ setNet(false); }
-}
-if (API){
-  poll();
-  setInterval(poll, POLL_MS);
-  const qp = QS.get('pin');
-  if (qp) openConsole(qp);
-}
+const qp = QS.get('pin');
+if (API && qp) openConsole(qp);
 </script>
 
 </body>
